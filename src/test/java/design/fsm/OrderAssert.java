@@ -9,7 +9,7 @@ public class OrderAssert extends AbstractAssert<OrderAssert, Order> {
 	public OrderAssert(Order actual) {
 		super(actual, OrderAssert.class);
 	}
-
+	
 	public OrderAssert isNew() {
 		assertThat(actual.getStatus()).isEqualTo(OrderStatus.NEW);
 		return this;

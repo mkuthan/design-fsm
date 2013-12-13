@@ -1,8 +1,13 @@
 package design.fsm;
 
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+
 import java.util.Arrays;
 import java.util.EnumSet;
 
+import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -13,89 +18,81 @@ public class OrderStateTest {
 
 	private static final AmendOrderLineCommand ANY_AMEND_ORDER_LINE_COMMAND = new AmendOrderLineCommand(null, null);
 
-	private Order.Builder orderBuilder;
-
 	private Order order;
 
 	@Test(dataProvider = "toOpen")
 	public void shouldOpenOrderWhenStatusIs(OrderStatus status) {
-		givenOrder();
+		// when
+		status.open(order);
 
-		whenOpenOrder(status);
-
-		thenOrder().isOpened();
+		// then
+		verify(order).doOpen();
 	}
 
 	@Test(dataProvider = "complementToOpen", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* open .*")
 	public void couldNotOpenOrderWhenStatusIs(OrderStatus status) {
-		givenOrder();
-
-		whenOpenOrder(status);
+		// when
+		status.open(order);
 	}
 
 	@Test(dataProvider = "toClose")
 	public void shouldCloseOrderWhenStatusIs(OrderStatus status) {
-		givenOrder();
+		// when
+		status.close(order);
 
-		whenCloseOrder(status);
-
-		thenOrder().isClosed();
+		// then
+		verify(order).doClose();
 	}
 
 	@Test(dataProvider = "complementToClose", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* close .*")
 	public void couldNotCloseOrderWhenStatusIs(OrderStatus status) {
-		givenOrder();
-
-		whenCloseOrder(status);
+		// when
+		status.close(order);
 	}
 
 	@Test(dataProvider = "toCancel")
 	public void shouldCancelOrderWhenStatusIs(OrderStatus status) {
-		givenOrder();
+		// when
+		status.cancel(order);
 
-		whenCancelOrder(status);
-
-		thenOrder().isCancelled();
+		// then
+		verify(order).doCancel();
 	}
 
 	@Test(dataProvider = "complementToCancel", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* cancel .*")
 	public void couldNotCancelOrderWhenStatusIs(OrderStatus status) {
-		givenOrder();
-
-		whenCancelOrder(status);
+		// when
+		status.cancel(order);
 	}
 
 	@Test(dataProvider = "toUpdate")
 	public void shouldUpdateOrderWhenStatusIs(OrderStatus status) {
-		givenOrder();
+		// when
+		status.update(order, ANY_ORDER_DETAILS);
 
-		whenUpdateOrder(status, ANY_ORDER_DETAILS);
-
-		thenOrder().isNew();
+		// then
+		verify(order).doUpdate(eq(ANY_ORDER_DETAILS));
 	}
 
 	@Test(dataProvider = "complementToUpdate", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* update .*")
 	public void couldNotUpdateOrderWhenStatusIs(OrderStatus status) {
-		givenOrder();
-
-		whenUpdateOrder(status, ANY_ORDER_DETAILS);
+		// when
+		status.update(order, ANY_ORDER_DETAILS);
 	}
 
-	// TODO
-	@Test(dataProvider = "toAmend", enabled = false)
+	@Test(dataProvider = "toAmend")
 	public void shouldAmendOrderLineWhenStatusIs(OrderStatus status) {
-		givenOrder();
+		// when
+		status.amendOrderLine(order, ANY_AMEND_ORDER_LINE_COMMAND);
 
-		whenAmendOrderLine(status, ANY_AMEND_ORDER_LINE_COMMAND);
-
-		thenOrder().isOpened();
+		// then
+		verify(order).doAmendOrderLine(eq(ANY_AMEND_ORDER_LINE_COMMAND));
 	}
 
 	@Test(dataProvider = "complementToAmend", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* amend order line .*")
 	public void couldNotAmendOrderLineWhenStatusIs(OrderStatus status) {
-		givenOrder();
-
-		whenAmendOrderLine(status, ANY_AMEND_ORDER_LINE_COMMAND);
+		// when
+		status.amendOrderLine(order, ANY_AMEND_ORDER_LINE_COMMAND);
 	}
 
 	@DataProvider
@@ -148,39 +145,9 @@ public class OrderStateTest {
 		return complement(toAmend());
 	}
 
-	private Order.Builder givenOrder() {
-		orderBuilder = new Order.Builder().withIdentifier(new OrderIdentifier("any identifier")).withDetails(
-				ANY_ORDER_DETAILS);
-		return orderBuilder;
-	}
-
-	private void whenOpenOrder(OrderStatus status) {
-		order = orderBuilder.build();
-		status.open(order);
-	}
-
-	private void whenCloseOrder(OrderStatus status) {
-		order = orderBuilder.build();
-		status.close(order);
-	}
-
-	private void whenCancelOrder(OrderStatus status) {
-		order = orderBuilder.build();
-		status.cancel(order);
-	}
-
-	private void whenUpdateOrder(OrderStatus status, OrderDetails details) {
-		order = orderBuilder.build();
-		status.update(order, details);
-	}
-
-	private void whenAmendOrderLine(OrderStatus status, AmendOrderLineCommand command) {
-		order = orderBuilder.build();
-		status.amendOrderLine(order, command);
-	}
-
-	private OrderAssert thenOrder() {
-		return new OrderAssert(this.order);
+	@BeforeMethod
+	void givenOrder() {
+		order = Mockito.mock(Order.class);
 	}
 
 	private Object[][] complement(Object[][] input) {
