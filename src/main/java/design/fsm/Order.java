@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class Order {
 
-	private OrderStatus status = OrderStatus.NEW;
+	private OrderStatus status;
 
 	private OrderIdentifier identifier;
 
@@ -17,6 +17,7 @@ public class Order {
 	private Set<AmendOrderLineCommand> orderLineAmendments = new HashSet<>();
 
 	Order(Builder builder) {
+		this.status = requireNonNull(builder.status);
 		this.identifier = requireNonNull(builder.identifier);
 		this.details = requireNonNull(builder.details);
 	}
@@ -75,27 +76,42 @@ public class Order {
 
 	void doAmendOrderLine(AmendOrderLineCommand command) {
 		requireNonNull(command);
-		
+
 		if (command.isChanging()) {
-			// TODO
+			details.changeOrderLine(command.getIdentifier(), command.getNewOrderLine());
 		}
-		
+
 		if (command.isAdding()) {
-			// TODO
+			details.addOrderLine(command.getNewOrderLine());
 		}
-		
+
 		if (command.isRemoving()) {
-			// TODO
+			details.removeOrderLine(command.getIdentifier());
 		}
-		
+
 		orderLineAmendments.add(command);
 	}
 
 	public static class Builder {
 
+		public OrderStatus status;
+
 		private OrderIdentifier identifier;
 
 		private OrderDetails details;
+
+		public Builder withStatus(OrderStatus status) {
+			this.status = status;
+			return this;
+		}
+
+		public Builder newOrder() {
+			return withStatus(OrderStatus.NEW);
+		}
+
+		public Builder openedOrder() {
+			return withStatus(OrderStatus.OPENED);
+		}
 
 		public Builder withIdentifier(OrderIdentifier identifier) {
 			this.identifier = identifier;
