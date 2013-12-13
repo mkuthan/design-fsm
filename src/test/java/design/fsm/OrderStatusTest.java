@@ -12,7 +12,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @Test
-public class OrderStateTest {
+public class OrderStatusTest {
 
 	private static final OrderDetails ANY_ORDER_DETAILS = new OrderDetails.Builder().build();
 
