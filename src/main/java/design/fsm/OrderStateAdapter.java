@@ -22,4 +22,9 @@ public class OrderStateAdapter implements OrderState {
 		throw new OrderIllegalStateException(order, "update");
 	}
 
+	@Override
+	public void amendOrderLine(Order order, AmendOrderLineCommand command) {
+		throw new OrderIllegalStateException(order, "amend order line");
+	}
+
 }

@@ -4,21 +4,21 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-public class OrderNumber {
+public class OrderLineIdentifier {
 
-	private String number;
+	private String identifier;
 
-	public OrderNumber(String number) {
-		this.number = requireNonNull(number);
+	public OrderLineIdentifier(String identifier) {
+		this.identifier = requireNonNull(identifier);
 	}
 
-	public String getNumber() {
-		return number;
+	public String getIdentifier() {
+		return identifier;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(number);
+		return Objects.hash(identifier);
 	}
 
 	@Override
@@ -32,13 +32,13 @@ public class OrderNumber {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		OrderNumber that = (OrderNumber) obj;
-		return Objects.equals(this.number, that.number);
+		OrderLineIdentifier that = (OrderLineIdentifier) obj;
+		return Objects.equals(this.identifier, that.identifier);
 	}
 
 	@Override
 	public String toString() {
-		return number;
+		return identifier;
 	}
 
 }

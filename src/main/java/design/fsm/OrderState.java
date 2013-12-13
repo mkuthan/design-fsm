@@ -10,4 +10,6 @@ public interface OrderState {
 
 	void update(Order order, OrderDetails details);
 
+	void amendOrderLine(Order order, AmendOrderLineCommand command);
+
 }

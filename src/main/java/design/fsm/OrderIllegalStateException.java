@@ -17,6 +17,7 @@ public class OrderIllegalStateException extends RuntimeException {
 
 	@Override
 	public String getMessage() {
-		return "Cannot " + operation + " order '" + order.getNumber() + "' with status '" + order.getStatus() + "'.";
+		return "Cannot " + operation + " on order '" + order.getIdentifier() + "' with status '" + order.getStatus()
+				+ "'.";
 	}
 }

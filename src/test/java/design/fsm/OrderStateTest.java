@@ -9,6 +9,12 @@ import org.testng.annotations.Test;
 @Test
 public class OrderStateTest {
 
+	private static final OrderDetails ANY_ORDER_DETAILS = new OrderDetails.Builder().build();
+
+	private static final AmendOrderLineCommand ANY_AMEND_ORDER_LINE_COMMAND = new AmendOrderLineCommand(null, null);
+
+	private Order.Builder orderBuilder;
+
 	private Order order;
 
 	@Test(dataProvider = "toOpen")
@@ -61,20 +67,35 @@ public class OrderStateTest {
 
 	@Test(dataProvider = "toUpdate")
 	public void shouldUpdateOrderWhenStatusIs(OrderStatus status) {
-		OrderDetails details = new OrderDetails();
-		
 		givenOrder();
 
-		whenUpdateOrder(status, details);
+		whenUpdateOrder(status, ANY_ORDER_DETAILS);
 
-		thenOrder().isNew().hasDetails(details);
+		thenOrder().isNew();
 	}
 
 	@Test(dataProvider = "complementToUpdate", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* update .*")
 	public void couldNotUpdateOrderWhenStatusIs(OrderStatus status) {
 		givenOrder();
 
-		whenUpdateOrder(status, new OrderDetails());
+		whenUpdateOrder(status, ANY_ORDER_DETAILS);
+	}
+
+	// TODO
+	@Test(dataProvider = "toAmend", enabled = false)
+	public void shouldAmendOrderLineWhenStatusIs(OrderStatus status) {
+		givenOrder();
+
+		whenAmendOrderLine(status, ANY_AMEND_ORDER_LINE_COMMAND);
+
+		thenOrder().isOpened();
+	}
+
+	@Test(dataProvider = "complementToAmend", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* amend order line .*")
+	public void couldNotAmendOrderLineWhenStatusIs(OrderStatus status) {
+		givenOrder();
+
+		whenAmendOrderLine(status, ANY_AMEND_ORDER_LINE_COMMAND);
 	}
 
 	@DataProvider
@@ -117,25 +138,45 @@ public class OrderStateTest {
 		return complement(toUpdate());
 	}
 
-	private Order givenOrder() {
-		this.order = new Order(new OrderNumber("any number"), new OrderDetails());
-		return this.order;
+	@DataProvider
+	Object[][] toAmend() {
+		return new Object[][] { { OrderStatus.OPENED } };
+	}
+
+	@DataProvider
+	Object[][] complementToAmend() {
+		return complement(toAmend());
+	}
+
+	private Order.Builder givenOrder() {
+		orderBuilder = new Order.Builder().withIdentifier(new OrderIdentifier("any identifier")).withDetails(
+				ANY_ORDER_DETAILS);
+		return orderBuilder;
 	}
 
 	private void whenOpenOrder(OrderStatus status) {
-		status.open(this.order);
+		order = orderBuilder.build();
+		status.open(order);
 	}
 
 	private void whenCloseOrder(OrderStatus status) {
-		status.close(this.order);
+		order = orderBuilder.build();
+		status.close(order);
 	}
 
 	private void whenCancelOrder(OrderStatus status) {
-		status.cancel(this.order);
+		order = orderBuilder.build();
+		status.cancel(order);
 	}
 
 	private void whenUpdateOrder(OrderStatus status, OrderDetails details) {
-		status.update(this.order, details);
+		order = orderBuilder.build();
+		status.update(order, details);
+	}
+
+	private void whenAmendOrderLine(OrderStatus status, AmendOrderLineCommand command) {
+		order = orderBuilder.build();
+		status.amendOrderLine(order, command);
 	}
 
 	private OrderAssert thenOrder() {

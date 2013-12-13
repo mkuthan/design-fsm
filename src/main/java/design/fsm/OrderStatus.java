@@ -15,23 +15,28 @@ public enum OrderStatus implements OrderState {
 
 	@Override
 	public void open(Order order) {
-		this.state.open(order);
+		state.open(order);
 	}
 
 	@Override
 	public void close(Order order) {
-		this.state.close(order);
+		state.close(order);
 	}
 
 	@Override
 	public void cancel(Order order) {
-		this.state.cancel(order);
+		state.cancel(order);
 
 	}
 
 	@Override
 	public void update(Order order, OrderDetails details) {
-		this.state.update(order, details);
+		state.update(order, details);
+	}
+
+	@Override
+	public void amendOrderLine(Order order, AmendOrderLineCommand command) {
+		state.amendOrderLine(order, command);
 	}
 
 }
