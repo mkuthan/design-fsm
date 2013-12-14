@@ -1,6 +1,8 @@
-package design.fsm;
+package design.fsm.commands;
 
 import static java.util.Objects.requireNonNull;
+import design.fsm.OrderLine;
+import design.fsm.OrderLineIdentifier;
 
 public class AmendOrderLineCommand {
 

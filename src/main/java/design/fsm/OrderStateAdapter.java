@@ -1,40 +1,42 @@
 package design.fsm;
 
+import design.fsm.commands.AmendOrderLineCommand;
+
 public class OrderStateAdapter implements OrderState {
 
 	@Override
 	public void open(Order order) {
-		throw new OrderIllegalStateException(order, "open");
+		throw new IllegalOrderStateException(order, "open");
 	}
 
 	@Override
 	public void close(Order order) {
-		throw new OrderIllegalStateException(order, "close");
+		throw new IllegalOrderStateException(order, "close");
 	}
 
 	@Override
 	public void suspend(Order order, String reason) {
-		throw new OrderIllegalStateException(order, "suspend");
+		throw new IllegalOrderStateException(order, "suspend");
 	}
 
 	@Override
 	public void resume(Order order) {
-		throw new OrderIllegalStateException(order, "resume");
+		throw new IllegalOrderStateException(order, "resume");
 	}
 
 	@Override
 	public void cancel(Order order, String reason) {
-		throw new OrderIllegalStateException(order, "cancel");
+		throw new IllegalOrderStateException(order, "cancel");
 	}
 
 	@Override
 	public void update(Order order, OrderDetails details) {
-		throw new OrderIllegalStateException(order, "update");
+		throw new IllegalOrderStateException(order, "update");
 	}
 
 	@Override
 	public void amendOrderLine(Order order, AmendOrderLineCommand command) {
-		throw new OrderIllegalStateException(order, "amend order line");
+		throw new IllegalOrderStateException(order, "amend order line");
 	}
 
 }

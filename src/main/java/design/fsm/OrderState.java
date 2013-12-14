@@ -1,5 +1,7 @@
 package design.fsm;
 
+import design.fsm.commands.AmendOrderLineCommand;
+
 public interface OrderState {
 
 	void open(Order order);

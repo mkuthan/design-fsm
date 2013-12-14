@@ -41,11 +41,6 @@ public class OrderAssert extends AbstractAssert<OrderAssert, Order> {
 		return this;
 	}
 
-	public OrderAssert hasOrderLineAmendment(AmendOrderLineCommand command) {
-		assertThat(actual.getOrderLineAmendments()).contains(command);
-		return this;
-	}
-
 	public OrderAssert containsOrderLine(final OrderLineIdentifier orderLineIdentifier) {
 		assertThat(actual.getDetails().getOrderLines()).areExactly(1, new Condition<OrderLine>() {
 			@Override

@@ -1,5 +1,7 @@
 package design.fsm;
 
+import design.fsm.commands.AmendOrderLineCommand;
+
 public class OpenedOrderState extends OrderStateAdapter implements OrderState {
 
 	@Override

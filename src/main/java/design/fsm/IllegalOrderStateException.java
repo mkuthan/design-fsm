@@ -2,7 +2,7 @@ package design.fsm;
 
 import static java.util.Objects.requireNonNull;
 
-public class OrderIllegalStateException extends RuntimeException {
+public class IllegalOrderStateException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
@@ -10,7 +10,7 @@ public class OrderIllegalStateException extends RuntimeException {
 
 	private String operation;
 
-	public OrderIllegalStateException(Order order, String operation) {
+	public IllegalOrderStateException(Order order, String operation) {
 		this.order = requireNonNull(order);
 		this.operation = requireNonNull(operation);
 	}

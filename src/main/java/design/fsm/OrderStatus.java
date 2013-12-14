@@ -1,5 +1,7 @@
 package design.fsm;
 
+import design.fsm.commands.AmendOrderLineCommand;
+
 public enum OrderStatus implements OrderState {
 
 	NEW(new NewOrderState()), //

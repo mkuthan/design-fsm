@@ -1,17 +1,36 @@
 package design.fsm;
 
+import org.mockito.Answers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.testng.annotations.Test;
+
+import design.ddd.DomainEventPublisher;
+import design.ddd.DomainEventPublisherAssert;
+import design.fsm.commands.AmendOrderLineCommand;
+import design.fsm.events.OrderCancelledEvent;
+import design.fsm.events.OrderClosedEvent;
+import design.fsm.events.OrderEventFactory;
+import design.fsm.events.OrderLineAmendedEvent;
+import design.fsm.events.OrderOpenedEvent;
+import design.fsm.events.OrderResumedEvent;
+import design.fsm.events.OrderSuspendedEvent;
+import design.fsm.events.OrderUpdatedEvent;
 
 @Test
 public class OrderTest {
 
+	@Mock
+	private DomainEventPublisher domainEventPublisher;
+
+	@Mock(answer = Answers.RETURNS_SMART_NULLS)
+	private OrderEventFactory orderEventFactory;
+
+	@InjectMocks
 	private Order order;
 
 	private Order.Builder orderBuilder;
-
-	private OrderDetails.Builder orderDetailsBuilder = new OrderDetails.Builder();
-
-	private OrderLine.Builder orderLineBuilder = new OrderLine.Builder();
 
 	public void shouldBeNew() {
 		givenOrder().newOrder();
@@ -27,6 +46,7 @@ public class OrderTest {
 		whenOrder().open();
 
 		thenOrder().isOpened();
+		thenDomainEventPublisher().published(OrderOpenedEvent.class);
 	}
 
 	public void shouldBeClosed() {
@@ -35,6 +55,7 @@ public class OrderTest {
 		whenOrder().close();
 
 		thenOrder().isClosed();
+		thenDomainEventPublisher().published(OrderClosedEvent.class);
 	}
 
 	public void shouldBeSuspended() {
@@ -44,6 +65,16 @@ public class OrderTest {
 		whenOrder().suspend(message);
 
 		thenOrder().isSuspended();
+		thenDomainEventPublisher().published(OrderSuspendedEvent.class);
+	}
+
+	public void shouldBeResumed() {
+		givenOrder().suspendedOrder();
+
+		whenOrder().resume();
+
+		thenOrder().isOpened();
+		thenDomainEventPublisher().published(OrderResumedEvent.class);
 	}
 
 	public void shouldBeCancelled() {
@@ -53,29 +84,44 @@ public class OrderTest {
 		whenOrder().cancel(message);
 
 		thenOrder().isCancelled();
+		thenDomainEventPublisher().published(OrderCancelledEvent.class);
 	}
 
 	public void shouldBeUpdated() {
 		givenOrder().newOrder();
 
-		OrderDetails newDetails = orderDetailsBuilder.build();
+		OrderDetails newDetails = givenOrderDetails().withOrderLine(
+				givenOrderLine().withIdentifier("new order line").build()).build();
 		whenOrder().update(newDetails);
 
 		thenOrder().hasDetails(newDetails);
+		thenDomainEventPublisher().published(OrderUpdatedEvent.class);
+	}
+
+	public void shouldNotBeUpdatedWhenEqualDetails() {
+		givenOrder().newOrder();
+
+		OrderDetails newDetails = givenOrderDetails().build();
+		whenOrder().update(newDetails);
+
+		thenOrder().hasDetails(newDetails);
+		thenDomainEventPublisher().didNotPublish(OrderUpdatedEvent.class);
 	}
 
 	public void shouldChangeOrderLine() {
 		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("changed line");
-		givenOrder().openedOrder().withDetails(orderDetailsBuilder.withOrderLine(orderLineIdentifier).build());
+		givenOrder().openedOrder()
+				.withDetails(
+						givenOrderDetails().withOrderLine(givenOrderLine().withIdentifier(orderLineIdentifier).build())
+								.build());
 
 		OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
-		AmendOrderLineCommand changeOrderLineCommand = AmendOrderLineCommand.changeOrderLineCommand(
-				orderLineIdentifier, orderLineBuilder.withIdentifier(newOrderLineIdentifier).build());
-		whenOrder().amendOrderLine(changeOrderLineCommand);
+		whenOrder().amendOrderLine(
+				AmendOrderLineCommand.changeOrderLineCommand(orderLineIdentifier,
+						givenOrderLine().withIdentifier(newOrderLineIdentifier).build()));
 
-		thenOrder().doesNotContainOrderLine(orderLineIdentifier) //
-				.containsOrderLine(newOrderLineIdentifier) //
-				.hasOrderLineAmendment(changeOrderLineCommand);
+		thenOrder().doesNotContainOrderLine(orderLineIdentifier).containsOrderLine(newOrderLineIdentifier);
+		thenDomainEventPublisher().published(OrderLineAmendedEvent.class);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -84,33 +130,34 @@ public class OrderTest {
 		givenOrder().openedOrder();
 
 		OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
-		AmendOrderLineCommand changeOrderLineCommand = AmendOrderLineCommand.changeOrderLineCommand(
-				orderLineIdentifier, orderLineBuilder.withIdentifier(newOrderLineIdentifier).build());
-		whenOrder().amendOrderLine(changeOrderLineCommand);
+		whenOrder().amendOrderLine(
+				AmendOrderLineCommand.changeOrderLineCommand(orderLineIdentifier,
+						givenOrderLine().withIdentifier(newOrderLineIdentifier).build()));
 	}
 
 	public void shouldAddOrderLine() {
 		givenOrder().openedOrder();
 
 		OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
-		AmendOrderLineCommand addOrderLineCommand = AmendOrderLineCommand.addOrderLineCommand(orderLineBuilder
-				.withIdentifier(newOrderLineIdentifier).build());
-		whenOrder().amendOrderLine(addOrderLineCommand);
+		whenOrder().amendOrderLine(
+				AmendOrderLineCommand.addOrderLineCommand(givenOrderLine().withIdentifier(newOrderLineIdentifier)
+						.build()));
 
-		thenOrder().containsOrderLine(newOrderLineIdentifier) //
-				.hasOrderLineAmendment(addOrderLineCommand);
+		thenOrder().containsOrderLine(newOrderLineIdentifier);
+		thenDomainEventPublisher().published(OrderLineAmendedEvent.class);
 	}
 
 	public void shouldRemoveOrderLine() {
 		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("removed line");
-		givenOrder().openedOrder().withDetails(orderDetailsBuilder.withOrderLine(orderLineIdentifier).build());
+		givenOrder().openedOrder()
+				.withDetails(
+						givenOrderDetails().withOrderLine(givenOrderLine().withIdentifier(orderLineIdentifier).build())
+								.build());
 
-		AmendOrderLineCommand removeOrderLineCommand = AmendOrderLineCommand
-				.removeOrderLineCommand(orderLineIdentifier);
-		whenOrder().amendOrderLine(removeOrderLineCommand);
+		whenOrder().amendOrderLine(AmendOrderLineCommand.removeOrderLineCommand(orderLineIdentifier));
 
-		thenOrder().doesNotContainOrderLine(orderLineIdentifier) //
-				.hasOrderLineAmendment(removeOrderLineCommand);
+		thenOrder().doesNotContainOrderLine(orderLineIdentifier);
+		thenDomainEventPublisher().published(OrderLineAmendedEvent.class);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -118,24 +165,34 @@ public class OrderTest {
 		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("removed line");
 		givenOrder().openedOrder();
 
-		AmendOrderLineCommand removeOrderLineCommand = AmendOrderLineCommand
-				.removeOrderLineCommand(orderLineIdentifier);
-		whenOrder().amendOrderLine(removeOrderLineCommand);
+		whenOrder().amendOrderLine(AmendOrderLineCommand.removeOrderLineCommand(orderLineIdentifier));
 	}
 
 	private Order.Builder givenOrder() {
-		orderBuilder = new Order.Builder().withIdentifier(new OrderIdentifier("any identifier")).withDetails(
-				orderDetailsBuilder.build());
+		orderBuilder = new Order.Builder().withIdentifier("any order").withDetails(new OrderDetails.Builder().build());
 		return orderBuilder;
+	}
+
+	private OrderDetails.Builder givenOrderDetails() {
+		return new OrderDetails.Builder();
+	}
+
+	private OrderLine.Builder givenOrderLine() {
+		return new OrderLine.Builder();
 	}
 
 	private Order whenOrder() {
 		order = orderBuilder.build();
+		MockitoAnnotations.initMocks(this);
 		return order;
 	}
 
 	private OrderAssert thenOrder() {
 		return new OrderAssert(order);
+	}
+
+	private DomainEventPublisherAssert thenDomainEventPublisher() {
+		return new DomainEventPublisherAssert(domainEventPublisher);
 	}
 
 }

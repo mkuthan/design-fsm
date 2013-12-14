@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class OrderDetails {
 
@@ -16,6 +17,26 @@ public class OrderDetails {
 
 	public List<OrderLine> getOrderLines() {
 		return Collections.unmodifiableList(orderLines);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(orderLines);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		OrderDetails that = (OrderDetails) obj;
+		return Objects.equals(this.orderLines, that.orderLines);
 	}
 
 	void changeOrderLine(OrderLineIdentifier identifier, OrderLine newOrderLine) {
@@ -50,10 +71,6 @@ public class OrderDetails {
 		public Builder withOrderLine(OrderLine orderLine) {
 			orderLines.add(orderLine);
 			return this;
-		}
-
-		public Builder withOrderLine(OrderLineIdentifier identifier) {
-			return withOrderLine(new OrderLine.Builder().withIdentifier(identifier).build());
 		}
 
 		public OrderDetails build() {

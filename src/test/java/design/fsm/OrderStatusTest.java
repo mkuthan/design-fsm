@@ -6,10 +6,14 @@ import static org.mockito.Mockito.verify;
 import java.util.Arrays;
 import java.util.EnumSet;
 
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import design.fsm.commands.AmendOrderLineCommand;
 
 @Test
 public class OrderStatusTest {
@@ -22,6 +26,7 @@ public class OrderStatusTest {
 
 	private static final String ANY_CANCEL_REASON = "";
 
+	@Mock
 	private Order order;
 
 	@Test(dataProvider = "toOpen")
@@ -33,7 +38,7 @@ public class OrderStatusTest {
 		verify(order).doOpen();
 	}
 
-	@Test(dataProvider = "complementToOpen", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* open .*")
+	@Test(dataProvider = "complementToOpen", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* open .*")
 	public void couldNotOpenOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.open(order);
@@ -48,7 +53,7 @@ public class OrderStatusTest {
 		verify(order).doClose();
 	}
 
-	@Test(dataProvider = "complementToClose", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* close .*")
+	@Test(dataProvider = "complementToClose", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* close .*")
 	public void couldNotCloseOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.close(order);
@@ -63,7 +68,7 @@ public class OrderStatusTest {
 		verify(order).doSuspend(eq(ANY_SUSPEND_REASON));
 	}
 
-	@Test(dataProvider = "complementToSuspend", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* suspend .*")
+	@Test(dataProvider = "complementToSuspend", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* suspend .*")
 	public void couldNotSuspendOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.suspend(order, ANY_SUSPEND_REASON);
@@ -78,7 +83,7 @@ public class OrderStatusTest {
 		verify(order).doResume();
 	}
 
-	@Test(dataProvider = "complementToResume", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* resume .*")
+	@Test(dataProvider = "complementToResume", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* resume .*")
 	public void couldNotResumeOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.resume(order);
@@ -93,7 +98,7 @@ public class OrderStatusTest {
 		verify(order).doCancel(eq(ANY_CANCEL_REASON));
 	}
 
-	@Test(dataProvider = "complementToCancel", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* cancel .*")
+	@Test(dataProvider = "complementToCancel", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* cancel .*")
 	public void couldNotCancelOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.cancel(order, ANY_CANCEL_REASON);
@@ -108,7 +113,7 @@ public class OrderStatusTest {
 		verify(order).doUpdate(eq(ANY_ORDER_DETAILS));
 	}
 
-	@Test(dataProvider = "complementToUpdate", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* update .*")
+	@Test(dataProvider = "complementToUpdate", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* update .*")
 	public void couldNotUpdateOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.update(order, ANY_ORDER_DETAILS);
@@ -123,7 +128,7 @@ public class OrderStatusTest {
 		verify(order).doAmendOrderLine(eq(ANY_AMEND_ORDER_LINE_COMMAND));
 	}
 
-	@Test(dataProvider = "complementToAmend", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* amend order line .*")
+	@Test(dataProvider = "complementToAmend", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* amend order line .*")
 	public void couldNotAmendOrderLineWhenStatusIs(OrderStatus status) {
 		// when
 		status.amendOrderLine(order, ANY_AMEND_ORDER_LINE_COMMAND);
@@ -201,7 +206,7 @@ public class OrderStatusTest {
 
 	@BeforeMethod
 	void givenOrder() {
-		order = Mockito.mock(Order.class);
+		MockitoAnnotations.initMocks(this);
 	}
 
 	private Object[][] complement(Object[][] input) {

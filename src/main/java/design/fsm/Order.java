@@ -1,20 +1,21 @@
 package design.fsm;
 
 import static java.util.Objects.requireNonNull;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import design.ddd.DomainEventPublisher;
+import design.fsm.commands.AmendOrderLineCommand;
+import design.fsm.events.OrderEventFactory;
 
 public class Order {
+
+	private DomainEventPublisher domainEventPublisher;
+
+	private OrderEventFactory orderEventFactory;
 
 	private OrderStatus status;
 
 	private OrderIdentifier identifier;
 
 	private OrderDetails details;
-
-	private Set<AmendOrderLineCommand> orderLineAmendments = new HashSet<>();
 
 	Order(Builder builder) {
 		this.status = requireNonNull(builder.status);
@@ -34,16 +35,15 @@ public class Order {
 		return details;
 	}
 
-	public Set<AmendOrderLineCommand> getOrderLineAmendments() {
-		return Collections.unmodifiableSet(orderLineAmendments);
-	}
-
 	public void open() {
 		status.open(this);
 	}
 
 	void doOpen() {
+		OrderStatus oldStatus = status;
 		status = OrderStatus.OPENED;
+
+		domainEventPublisher.publish(orderEventFactory.createOpenedEvent(identifier, oldStatus, status));
 	}
 
 	public void close() {
@@ -51,7 +51,10 @@ public class Order {
 	}
 
 	void doClose() {
+		OrderStatus oldStatus = status;
 		status = OrderStatus.CLOSED;
+
+		domainEventPublisher.publish(orderEventFactory.createClosedEvent(identifier, oldStatus, status));
 	}
 
 	public void suspend(String reason) {
@@ -60,7 +63,11 @@ public class Order {
 
 	void doSuspend(String reason) {
 		requireNonNull(reason);
+
+		OrderStatus oldStatus = status;
 		status = OrderStatus.SUSPENDED;
+
+		domainEventPublisher.publish(orderEventFactory.createSuspendedEvent(identifier, oldStatus, status, reason));
 	}
 
 	public void resume() {
@@ -68,7 +75,10 @@ public class Order {
 	}
 
 	void doResume() {
+		OrderStatus oldStatus = status;
 		status = OrderStatus.OPENED;
+
+		domainEventPublisher.publish(orderEventFactory.createResumedEvent(identifier, oldStatus, status));
 	}
 
 	public void cancel(String reason) {
@@ -77,7 +87,11 @@ public class Order {
 
 	void doCancel(String reason) {
 		requireNonNull(reason);
+
+		OrderStatus oldStatus = status;
 		status = OrderStatus.CANCELLED;
+
+		domainEventPublisher.publish(orderEventFactory.createCancelledEvent(identifier, oldStatus, status, reason));
 	}
 
 	public void update(OrderDetails details) {
@@ -85,7 +99,14 @@ public class Order {
 	}
 
 	void doUpdate(OrderDetails details) {
+		if (this.details.equals(details)) {
+			return;
+		}
+
+		OrderDetails oldDetails = this.details;
 		this.details = requireNonNull(details);
+
+		domainEventPublisher.publish(orderEventFactory.createUpdateEven(identifier, status, oldDetails, details));
 	}
 
 	public void amendOrderLine(AmendOrderLineCommand command) {
@@ -107,7 +128,8 @@ public class Order {
 			details.removeOrderLine(command.getIdentifier());
 		}
 
-		orderLineAmendments.add(command);
+		domainEventPublisher.publish(orderEventFactory.createOrderLineAmendedEvent(identifier, status,
+				command.getIdentifier(), command.getNewOrderLine()));
 	}
 
 	public static class Builder {
@@ -131,9 +153,17 @@ public class Order {
 			return withStatus(OrderStatus.OPENED);
 		}
 
+		public Builder suspendedOrder() {
+			return withStatus(OrderStatus.SUSPENDED);
+		}
+
 		public Builder withIdentifier(OrderIdentifier identifier) {
 			this.identifier = identifier;
 			return this;
+		}
+
+		public Builder withIdentifier(String identifier) {
+			return withIdentifier(new OrderIdentifier(identifier));
 		}
 
 		public Builder withDetails(OrderDetails details) {
@@ -144,9 +174,7 @@ public class Order {
 		public Order build() {
 			return new Order(this);
 		}
+
 	}
 
-	private CurrentDateProvider currentDateProvider;
-
-	private CurrentUserProvider currentUserProvider;
 }

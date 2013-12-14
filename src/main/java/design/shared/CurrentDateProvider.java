@@ -1,7 +1,9 @@
-package design.fsm;
+package design.shared;
 
-import java.sql.Date;
+import java.util.Date;
 
 public interface CurrentDateProvider {
+
 	Date currentDate();
+
 }
