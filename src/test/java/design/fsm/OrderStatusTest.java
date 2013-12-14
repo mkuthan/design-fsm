@@ -14,9 +14,13 @@ import org.testng.annotations.Test;
 @Test
 public class OrderStatusTest {
 
-	private static final OrderDetails ANY_ORDER_DETAILS = new OrderDetails.Builder().build();
+	private static final OrderDetails ANY_ORDER_DETAILS = Mockito.mock(OrderDetails.class);
 
-	private static final AmendOrderLineCommand ANY_AMEND_ORDER_LINE_COMMAND = new AmendOrderLineCommand(null, null);
+	private static final AmendOrderLineCommand ANY_AMEND_ORDER_LINE_COMMAND = Mockito.mock(AmendOrderLineCommand.class);
+
+	private static final String ANY_SUSPEND_REASON = "";
+
+	private static final String ANY_CANCEL_REASON = "";
 
 	private Order order;
 
@@ -50,19 +54,49 @@ public class OrderStatusTest {
 		status.close(order);
 	}
 
+	@Test(dataProvider = "toSuspend")
+	public void shouldSuspendOrderWhenStatusIs(OrderStatus status) {
+		// when
+		status.suspend(order, ANY_SUSPEND_REASON);
+
+		// then
+		verify(order).doSuspend(eq(ANY_SUSPEND_REASON));
+	}
+
+	@Test(dataProvider = "complementToSuspend", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* suspend .*")
+	public void couldNotSuspendOrderWhenStatusIs(OrderStatus status) {
+		// when
+		status.suspend(order, ANY_SUSPEND_REASON);
+	}
+
+	@Test(dataProvider = "toResume")
+	public void shouldResumeOrderWhenStatusIs(OrderStatus status) {
+		// when
+		status.resume(order);
+
+		// then
+		verify(order).doResume();
+	}
+
+	@Test(dataProvider = "complementToResume", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* resume .*")
+	public void couldNotResumeOrderWhenStatusIs(OrderStatus status) {
+		// when
+		status.resume(order);
+	}
+
 	@Test(dataProvider = "toCancel")
 	public void shouldCancelOrderWhenStatusIs(OrderStatus status) {
 		// when
-		status.cancel(order);
+		status.cancel(order, ANY_CANCEL_REASON);
 
 		// then
-		verify(order).doCancel();
+		verify(order).doCancel(eq(ANY_CANCEL_REASON));
 	}
 
 	@Test(dataProvider = "complementToCancel", expectedExceptions = OrderIllegalStateException.class, expectedExceptionsMessageRegExp = ".* cancel .*")
 	public void couldNotCancelOrderWhenStatusIs(OrderStatus status) {
 		// when
-		status.cancel(order);
+		status.cancel(order, ANY_CANCEL_REASON);
 	}
 
 	@Test(dataProvider = "toUpdate")
@@ -107,7 +141,7 @@ public class OrderStatusTest {
 
 	@DataProvider
 	Object[][] toClose() {
-		return new Object[][] { { OrderStatus.OPENED } };
+		return new Object[][] { { OrderStatus.OPENED }, { OrderStatus.SUSPENDED } };
 	}
 
 	@DataProvider
@@ -116,8 +150,28 @@ public class OrderStatusTest {
 	}
 
 	@DataProvider
-	Object[][] toCancel() {
+	Object[][] toSuspend() {
 		return new Object[][] { { OrderStatus.OPENED } };
+	}
+
+	@DataProvider
+	Object[][] complementToSuspend() {
+		return complement(toSuspend());
+	}
+
+	@DataProvider
+	Object[][] toResume() {
+		return new Object[][] { { OrderStatus.SUSPENDED } };
+	}
+
+	@DataProvider
+	Object[][] complementToResume() {
+		return complement(toResume());
+	}
+
+	@DataProvider
+	Object[][] toCancel() {
+		return new Object[][] { { OrderStatus.OPENED }, { OrderStatus.SUSPENDED } };
 	}
 
 	@DataProvider

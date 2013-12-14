@@ -13,7 +13,17 @@ public class OrderStateAdapter implements OrderState {
 	}
 
 	@Override
-	public void cancel(Order order) {
+	public void suspend(Order order, String reason) {
+		throw new OrderIllegalStateException(order, "suspend");
+	}
+
+	@Override
+	public void resume(Order order) {
+		throw new OrderIllegalStateException(order, "resume");
+	}
+
+	@Override
+	public void cancel(Order order, String reason) {
 		throw new OrderIllegalStateException(order, "cancel");
 	}
 

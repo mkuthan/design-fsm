@@ -26,6 +26,11 @@ public class OrderAssert extends AbstractAssert<OrderAssert, Order> {
 		return this;
 	}
 
+	public OrderAssert isSuspended() {
+		assertThat(actual.getStatus()).isEqualTo(OrderStatus.SUSPENDED);
+		return this;
+	}
+
 	public OrderAssert isCancelled() {
 		assertThat(actual.getStatus()).isEqualTo(OrderStatus.CANCELLED);
 		return this;

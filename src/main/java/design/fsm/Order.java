@@ -54,11 +54,29 @@ public class Order {
 		status = OrderStatus.CLOSED;
 	}
 
-	public void cancel() {
-		status.cancel(this);
+	public void suspend(String reason) {
+		status.suspend(this, reason);
 	}
 
-	void doCancel() {
+	void doSuspend(String reason) {
+		requireNonNull(reason);
+		status = OrderStatus.SUSPENDED;
+	}
+
+	public void resume() {
+		status.resume(this);
+	}
+
+	void doResume() {
+		status = OrderStatus.OPENED;
+	}
+
+	public void cancel(String reason) {
+		status.cancel(this, reason);
+	}
+
+	void doCancel(String reason) {
+		requireNonNull(reason);
 		status = OrderStatus.CANCELLED;
 	}
 
@@ -128,4 +146,7 @@ public class Order {
 		}
 	}
 
+	private CurrentDateProvider currentDateProvider;
+
+	private CurrentUserProvider currentUserProvider;
 }

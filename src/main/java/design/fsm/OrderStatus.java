@@ -4,6 +4,7 @@ public enum OrderStatus implements OrderState {
 
 	NEW(new NewOrderState()), //
 	OPENED(new OpenedOrderState()), //
+	SUSPENDED(new SuspendedOrderState()), //
 	CLOSED(new ClosedOrderState()), //
 	CANCELLED(new CancelledOrderState());
 
@@ -24,9 +25,18 @@ public enum OrderStatus implements OrderState {
 	}
 
 	@Override
-	public void cancel(Order order) {
-		state.cancel(order);
+	public void suspend(Order order, String reason) {
+		state.suspend(order, reason);
+	}
 
+	@Override
+	public void resume(Order order) {
+		state.resume(order);
+	}
+
+	@Override
+	public void cancel(Order order, String reason) {
+		state.cancel(order, reason);
 	}
 
 	@Override

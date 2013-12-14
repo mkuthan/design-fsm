@@ -37,10 +37,20 @@ public class OrderTest {
 		thenOrder().isClosed();
 	}
 
+	public void shouldBeSuspended() {
+		givenOrder().openedOrder();
+
+		String message = "any message";
+		whenOrder().suspend(message);
+
+		thenOrder().isSuspended();
+	}
+
 	public void shouldBeCancelled() {
 		givenOrder().openedOrder();
 
-		whenOrder().cancel();
+		String message = "any message";
+		whenOrder().cancel(message);
 
 		thenOrder().isCancelled();
 	}

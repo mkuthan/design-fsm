@@ -8,8 +8,13 @@ public class OpenedOrderState extends OrderStateAdapter implements OrderState {
 	}
 
 	@Override
-	public void cancel(Order order) {
-		order.doCancel();
+	public void suspend(Order order, String reason) {
+		order.doSuspend(reason);
+	}
+
+	@Override
+	public void cancel(Order order, String reason) {
+		order.doCancel(reason);
 	}
 
 	@Override

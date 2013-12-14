@@ -6,7 +6,11 @@ public interface OrderState {
 
 	void close(Order order);
 
-	void cancel(Order order);
+	void suspend(Order order, String reason);
+
+	void resume(Order order);
+
+	void cancel(Order order, String reason);
 
 	void update(Order order, OrderDetails details);
 
