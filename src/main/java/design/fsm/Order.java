@@ -1,13 +1,13 @@
 package design.fsm;
 
 import static java.util.Objects.requireNonNull;
-import design.ddd.DomainEventPublisher;
+import design.ddd.EventPublisher;
 import design.fsm.commands.AmendOrderLineCommand;
 import design.fsm.events.OrderEventFactory;
 
 public class Order {
 
-	private DomainEventPublisher domainEventPublisher;
+	private EventPublisher eventPublisher;
 
 	private OrderEventFactory orderEventFactory;
 
@@ -43,7 +43,7 @@ public class Order {
 		OrderStatus oldStatus = status;
 		status = OrderStatus.OPENED;
 
-		domainEventPublisher.publish(orderEventFactory.createOpenedEvent(identifier, oldStatus, status));
+		eventPublisher.publish(orderEventFactory.createOpenedEvent(identifier, oldStatus, status));
 	}
 
 	public void close() {
@@ -54,7 +54,7 @@ public class Order {
 		OrderStatus oldStatus = status;
 		status = OrderStatus.CLOSED;
 
-		domainEventPublisher.publish(orderEventFactory.createClosedEvent(identifier, oldStatus, status));
+		eventPublisher.publish(orderEventFactory.createClosedEvent(identifier, oldStatus, status));
 	}
 
 	public void suspend(String reason) {
@@ -67,7 +67,7 @@ public class Order {
 		OrderStatus oldStatus = status;
 		status = OrderStatus.SUSPENDED;
 
-		domainEventPublisher.publish(orderEventFactory.createSuspendedEvent(identifier, oldStatus, status, reason));
+		eventPublisher.publish(orderEventFactory.createSuspendedEvent(identifier, oldStatus, status, reason));
 	}
 
 	public void resume() {
@@ -78,7 +78,7 @@ public class Order {
 		OrderStatus oldStatus = status;
 		status = OrderStatus.OPENED;
 
-		domainEventPublisher.publish(orderEventFactory.createResumedEvent(identifier, oldStatus, status));
+		eventPublisher.publish(orderEventFactory.createResumedEvent(identifier, oldStatus, status));
 	}
 
 	public void cancel(String reason) {
@@ -91,7 +91,7 @@ public class Order {
 		OrderStatus oldStatus = status;
 		status = OrderStatus.CANCELLED;
 
-		domainEventPublisher.publish(orderEventFactory.createCancelledEvent(identifier, oldStatus, status, reason));
+		eventPublisher.publish(orderEventFactory.createCancelledEvent(identifier, oldStatus, status, reason));
 	}
 
 	public void update(OrderDetails details) {
@@ -106,7 +106,7 @@ public class Order {
 		OrderDetails oldDetails = this.details;
 		this.details = requireNonNull(details);
 
-		domainEventPublisher.publish(orderEventFactory.createUpdateEven(identifier, status, oldDetails, details));
+		eventPublisher.publish(orderEventFactory.createUpdateEven(identifier, status, oldDetails, details));
 	}
 
 	public void amendOrderLine(AmendOrderLineCommand command) {
@@ -128,7 +128,7 @@ public class Order {
 			details.removeOrderLine(command.getIdentifier());
 		}
 
-		domainEventPublisher.publish(orderEventFactory.createOrderLineAmendedEvent(identifier, status,
+		eventPublisher.publish(orderEventFactory.createOrderLineAmendedEvent(identifier, status,
 				command.getIdentifier(), command.getNewOrderLine()));
 	}
 

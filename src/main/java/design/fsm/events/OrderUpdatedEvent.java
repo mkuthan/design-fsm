@@ -11,6 +11,8 @@ import design.shared.User;
 
 public class OrderUpdatedEvent extends AbstractOrderEvent {
 
+	private static final long serialVersionUID = 1L;
+
 	private OrderDetails oldDetails;
 
 	private OrderDetails newDetails;

@@ -12,6 +12,8 @@ import design.shared.User;
 
 public class OrderLineAmendedEvent extends AbstractOrderEvent {
 
+	private static final long serialVersionUID = 1L;
+
 	private OrderLineIdentifier orderLineIdentifier;
 
 	private OrderLine newOrderLine;

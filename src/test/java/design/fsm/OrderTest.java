@@ -6,7 +6,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.Test;
 
-import design.ddd.DomainEventPublisher;
+import design.ddd.EventPublisher;
 import design.ddd.DomainEventPublisherAssert;
 import design.fsm.commands.AmendOrderLineCommand;
 import design.fsm.events.OrderCancelledEvent;
@@ -22,7 +22,7 @@ import design.fsm.events.OrderUpdatedEvent;
 public class OrderTest {
 
 	@Mock
-	private DomainEventPublisher domainEventPublisher;
+	private EventPublisher eventPublisher;
 
 	@Mock(answer = Answers.RETURNS_SMART_NULLS)
 	private OrderEventFactory orderEventFactory;
@@ -192,7 +192,7 @@ public class OrderTest {
 	}
 
 	private DomainEventPublisherAssert thenDomainEventPublisher() {
-		return new DomainEventPublisherAssert(domainEventPublisher);
+		return new DomainEventPublisherAssert(eventPublisher);
 	}
 
 }

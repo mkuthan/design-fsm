@@ -10,6 +10,8 @@ import design.shared.User;
 
 public class OrderCancelledEvent extends AbstractOrderEvent {
 
+	private static final long serialVersionUID = 1L;
+	
 	private String reason;
 
 	public OrderCancelledEvent(Date createdAt, User createdBy, OrderIdentifier identifier, OrderStatus oldStatus,
