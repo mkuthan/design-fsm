@@ -7,7 +7,7 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.Test;
 
 import design.ddd.EventPublisher;
-import design.ddd.DomainEventPublisherAssert;
+import design.ddd.EventPublisherAssert;
 import design.fsm.commands.AmendOrderLineCommand;
 import design.fsm.events.OrderCancelledEvent;
 import design.fsm.events.OrderClosedEvent;
@@ -30,7 +30,7 @@ public class OrderTest {
 	@InjectMocks
 	private Order order;
 
-	private Order.Builder orderBuilder;
+	private OrderBuilder orderBuilder;
 
 	public void shouldBeNew() {
 		givenOrder().newOrder();
@@ -90,8 +90,11 @@ public class OrderTest {
 	public void shouldBeUpdated() {
 		givenOrder().newOrder();
 
-		OrderDetails newDetails = givenOrderDetails().withOrderLine(
-				givenOrderLine().withIdentifier("new order line").build()).build();
+		// @formatter:off
+		OrderDetails newDetails = givenOrderDetails()
+				.addOrderLine(givenOrderLine().build())
+				.build();
+		// @formatter:on
 		whenOrder().update(newDetails);
 
 		thenOrder().hasDetails(newDetails);
@@ -105,15 +108,17 @@ public class OrderTest {
 		whenOrder().update(newDetails);
 
 		thenOrder().hasDetails(newDetails);
-		thenDomainEventPublisher().didNotPublish(OrderUpdatedEvent.class);
+		thenDomainEventPublisher().notPublished(OrderUpdatedEvent.class);
 	}
 
 	public void shouldChangeOrderLine() {
 		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("changed line");
+		// @formatter:off
 		givenOrder().openedOrder()
-				.withDetails(
-						givenOrderDetails().withOrderLine(givenOrderLine().withIdentifier(orderLineIdentifier).build())
-								.build());
+			.withDetails(givenOrderDetails()
+				.addOrderLine(givenOrderLine().withIdentifier(orderLineIdentifier).build())
+			.build());
+		// @formatter:on
 
 		OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
 		whenOrder().amendOrderLine(
@@ -149,10 +154,8 @@ public class OrderTest {
 
 	public void shouldRemoveOrderLine() {
 		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("removed line");
-		givenOrder().openedOrder()
-				.withDetails(
-						givenOrderDetails().withOrderLine(givenOrderLine().withIdentifier(orderLineIdentifier).build())
-								.build());
+		givenOrder().openedOrder().withDetails(
+				givenOrderDetails().addOrderLine(givenOrderLine().withIdentifier(orderLineIdentifier).build()).build());
 
 		whenOrder().amendOrderLine(AmendOrderLineCommand.removeOrderLineCommand(orderLineIdentifier));
 
@@ -168,17 +171,17 @@ public class OrderTest {
 		whenOrder().amendOrderLine(AmendOrderLineCommand.removeOrderLineCommand(orderLineIdentifier));
 	}
 
-	private Order.Builder givenOrder() {
-		orderBuilder = new Order.Builder().withIdentifier("any order").withDetails(new OrderDetails.Builder().build());
+	private OrderBuilder givenOrder() {
+		orderBuilder = new OrderBuilder();
 		return orderBuilder;
 	}
 
-	private OrderDetails.Builder givenOrderDetails() {
-		return new OrderDetails.Builder();
+	private OrderDetailsBuilder givenOrderDetails() {
+		return new OrderDetailsBuilder();
 	}
 
-	private OrderLine.Builder givenOrderLine() {
-		return new OrderLine.Builder();
+	private OrderLineBuilder givenOrderLine() {
+		return new OrderLineBuilder();
 	}
 
 	private Order whenOrder() {
@@ -191,8 +194,8 @@ public class OrderTest {
 		return new OrderAssert(order);
 	}
 
-	private DomainEventPublisherAssert thenDomainEventPublisher() {
-		return new DomainEventPublisherAssert(eventPublisher);
+	private EventPublisherAssert thenDomainEventPublisher() {
+		return new EventPublisherAssert(eventPublisher);
 	}
 
 }

@@ -10,7 +10,7 @@ public class AmendOrderLineCommand {
 
 	private OrderLine newOrderLine;
 
-	AmendOrderLineCommand(OrderLineIdentifier identifier, OrderLine newOrderLine) {
+	private AmendOrderLineCommand(OrderLineIdentifier identifier, OrderLine newOrderLine) {
 		this.identifier = identifier;
 		this.newOrderLine = newOrderLine;
 	}

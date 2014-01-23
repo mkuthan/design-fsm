@@ -8,8 +8,8 @@ public class OrderLine {
 
 	private OrderLineIdentifier identifier;
 
-	OrderLine(Builder builder) {
-		this.identifier = requireNonNull(builder.identifier);
+	public OrderLine(OrderLineIdentifier identifier) {
+		this.identifier = requireNonNull(identifier);
 	}
 
 	public OrderLineIdentifier getIdentifier() {
@@ -34,25 +34,6 @@ public class OrderLine {
 		}
 		OrderLine that = (OrderLine) obj;
 		return Objects.equals(this.identifier, that.identifier);
-	}
-
-	public static class Builder {
-
-		private OrderLineIdentifier identifier;
-
-		public Builder withIdentifier(OrderLineIdentifier identifier) {
-			this.identifier = identifier;
-			return this;
-		}
-
-		public Builder withIdentifier(String identifier) {
-			return withIdentifier(new OrderLineIdentifier(identifier));
-		}
-
-		public OrderLine build() {
-			return new OrderLine(this);
-		}
-
 	}
 
 }

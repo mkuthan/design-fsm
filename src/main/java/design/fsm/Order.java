@@ -17,10 +17,10 @@ public class Order {
 
 	private OrderDetails details;
 
-	Order(Builder builder) {
-		this.status = requireNonNull(builder.status);
-		this.identifier = requireNonNull(builder.identifier);
-		this.details = requireNonNull(builder.details);
+	public Order(OrderStatus status, OrderIdentifier identifier, OrderDetails details) {
+		this.status = requireNonNull(status);
+		this.identifier = requireNonNull(identifier);
+		this.details = requireNonNull(details);
 	}
 
 	public OrderStatus getStatus() {
@@ -34,7 +34,7 @@ public class Order {
 	public OrderDetails getDetails() {
 		return details;
 	}
-
+	
 	public void open() {
 		status.open(this);
 	}
@@ -130,51 +130,6 @@ public class Order {
 
 		eventPublisher.publish(orderEventFactory.createOrderLineAmendedEvent(identifier, status,
 				command.getIdentifier(), command.getNewOrderLine()));
-	}
-
-	public static class Builder {
-
-		public OrderStatus status;
-
-		private OrderIdentifier identifier;
-
-		private OrderDetails details;
-
-		public Builder withStatus(OrderStatus status) {
-			this.status = status;
-			return this;
-		}
-
-		public Builder newOrder() {
-			return withStatus(OrderStatus.NEW);
-		}
-
-		public Builder openedOrder() {
-			return withStatus(OrderStatus.OPENED);
-		}
-
-		public Builder suspendedOrder() {
-			return withStatus(OrderStatus.SUSPENDED);
-		}
-
-		public Builder withIdentifier(OrderIdentifier identifier) {
-			this.identifier = identifier;
-			return this;
-		}
-
-		public Builder withIdentifier(String identifier) {
-			return withIdentifier(new OrderIdentifier(identifier));
-		}
-
-		public Builder withDetails(OrderDetails details) {
-			this.details = details;
-			return this;
-		}
-
-		public Order build() {
-			return new Order(this);
-		}
-
 	}
 
 }

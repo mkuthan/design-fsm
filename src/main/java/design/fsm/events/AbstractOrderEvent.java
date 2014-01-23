@@ -2,7 +2,6 @@ package design.fsm.events;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import design.ddd.Event;
@@ -10,8 +9,7 @@ import design.fsm.OrderIdentifier;
 import design.fsm.OrderStatus;
 import design.shared.User;
 
-@Event
-public abstract class AbstractOrderEvent implements Serializable {
+public abstract class AbstractOrderEvent implements Event {
 
 	private static final long serialVersionUID = 1L;
 

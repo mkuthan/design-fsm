@@ -2,17 +2,16 @@ package design.fsm;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 public class OrderDetails {
 
-	private List<OrderLine> orderLines = new ArrayList<>();
+	private List<OrderLine> orderLines;
 
-	OrderDetails(Builder builder) {
-		this.orderLines.addAll(requireNonNull(builder.orderLines));
+	public OrderDetails(List<OrderLine> orderLines) {
+		this.orderLines = requireNonNull(orderLines);
 	}
 
 	public List<OrderLine> getOrderLines() {
@@ -62,20 +61,6 @@ public class OrderDetails {
 		}
 
 		throw new IllegalArgumentException("Order line with identifier '" + identifier + "' not found.");
-	}
-
-	public static class Builder {
-
-		private List<OrderLine> orderLines = new ArrayList<>();
-
-		public Builder withOrderLine(OrderLine orderLine) {
-			orderLines.add(orderLine);
-			return this;
-		}
-
-		public OrderDetails build() {
-			return new OrderDetails(this);
-		}
 	}
 
 }
