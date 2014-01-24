@@ -14,7 +14,9 @@ import design.fsm.events.OrderClosedEvent;
 import design.fsm.events.OrderEventFactory;
 import design.fsm.events.OrderLineAmendedEvent;
 import design.fsm.events.OrderOpenedEvent;
+import design.fsm.events.OrderRequestedForInformationEvent;
 import design.fsm.events.OrderResumedEvent;
+import design.fsm.events.OrderRevertedEvent;
 import design.fsm.events.OrderSuspendedEvent;
 import design.fsm.events.OrderUpdatedEvent;
 
@@ -87,7 +89,7 @@ public class OrderTest {
 		thenDomainEventPublisher().published(OrderCancelledEvent.class);
 	}
 
-	public void shouldBeUpdated() {
+	public void shouldUpdatee() {
 		givenOrder().newOrder();
 
 		// @formatter:off
@@ -101,7 +103,7 @@ public class OrderTest {
 		thenDomainEventPublisher().published(OrderUpdatedEvent.class);
 	}
 
-	public void shouldNotBeUpdatedWhenEqualDetails() {
+	public void shouldNotUpdateWhenNoChanges() {
 		givenOrder().newOrder();
 
 		OrderDetails newDetails = givenOrderDetails().build();
@@ -109,6 +111,24 @@ public class OrderTest {
 
 		thenOrder().hasDetails(newDetails);
 		thenDomainEventPublisher().notPublished(OrderUpdatedEvent.class);
+	}
+
+	public void shouldRevert() {
+		givenOrder().openedOrder();
+
+		whenOrder().revert();
+
+		thenOrder().isNew();
+		thenDomainEventPublisher().published(OrderRevertedEvent.class);
+	}
+
+	public void shouldRequestForInformation() {
+		givenOrder().openedOrder();
+
+		whenOrder().requestForInformation("any request");
+
+		thenOrder().isNew();
+		thenDomainEventPublisher().published(OrderRequestedForInformationEvent.class);
 	}
 
 	public void shouldChangeOrderLine() {

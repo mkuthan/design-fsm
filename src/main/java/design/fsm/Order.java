@@ -34,7 +34,7 @@ public class Order {
 	public OrderDetails getDetails() {
 		return details;
 	}
-	
+
 	public void open() {
 		status.open(this);
 	}
@@ -93,7 +93,7 @@ public class Order {
 
 		eventPublisher.publish(orderEventFactory.createCancelledEvent(identifier, oldStatus, status, reason));
 	}
-	
+
 	public void update(OrderDetails details) {
 		status.update(this, details);
 	}
@@ -107,6 +107,31 @@ public class Order {
 		this.details = requireNonNull(details);
 
 		eventPublisher.publish(orderEventFactory.createUpdateEven(identifier, status, oldDetails, details));
+	}
+
+	public void revert() {
+		status.revert(this);
+	}
+
+	void doRevert() {
+		OrderStatus oldStatus = status;
+		status = OrderStatus.NEW;
+
+		eventPublisher.publish(orderEventFactory.createRevertedEvent(identifier, oldStatus, status));
+	}
+
+	public void requestForInformation(String request) {
+		status.requestForInformation(this, request);
+	}
+
+	void doRequestForInformation(String request) {
+		requireNonNull(request);
+
+		OrderStatus oldStatus = status;
+		status = OrderStatus.NEW;
+
+		eventPublisher.publish(orderEventFactory.createRequestedForInformationEvent(identifier, oldStatus, status,
+				request));
 	}
 
 	public void amendOrderLine(AmendOrderLineCommand command) {

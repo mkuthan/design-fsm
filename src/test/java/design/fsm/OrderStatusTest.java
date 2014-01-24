@@ -23,15 +23,19 @@ public class OrderStatusTest {
 
 	private static final AmendOrderLineCommand ANY_AMEND_ORDER_LINE_COMMAND = Mockito.mock(AmendOrderLineCommand.class);
 
-	private static final String ANY_SUSPEND_REASON = "";
+	private static final String ANY_SUSPEND_REASON = "any suspend reason";
 
-	private static final String ANY_CANCEL_REASON = "";
+	private static final String ANY_CANCEL_REASON = "any cancel reason";
+
+	private static final String ANY_REQUEST_FOR_INFORMATION = "any request for information";
 
 	@Mock
 	private Order order;
 
 	@Test(dataProvider = "toOpen")
 	public void shouldOpenOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canOpen()).isTrue();
+
 		// when
 		status.open(order);
 
@@ -41,12 +45,16 @@ public class OrderStatusTest {
 
 	@Test(dataProvider = "complementToOpen", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* open .*")
 	public void shouldNotOpenOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canOpen()).isFalse();
+
 		// when
 		status.open(order);
 	}
 
 	@Test(dataProvider = "toClose")
 	public void shouldCloseOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canClose()).isTrue();
+
 		// when
 		status.close(order);
 
@@ -56,12 +64,16 @@ public class OrderStatusTest {
 
 	@Test(dataProvider = "complementToClose", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* close .*")
 	public void shouldNotCloseOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canClose()).isFalse();
+
 		// when
 		status.close(order);
 	}
 
 	@Test(dataProvider = "toSuspend")
 	public void shouldSuspendOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canSuspend()).isTrue();
+
 		// when
 		status.suspend(order, ANY_SUSPEND_REASON);
 
@@ -71,12 +83,16 @@ public class OrderStatusTest {
 
 	@Test(dataProvider = "complementToSuspend", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* suspend .*")
 	public void shouldNotSuspendOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canSuspend()).isFalse();
+
 		// when
 		status.suspend(order, ANY_SUSPEND_REASON);
 	}
 
 	@Test(dataProvider = "toResume")
 	public void shouldResumeOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canResume()).isTrue();
+
 		// when
 		status.resume(order);
 
@@ -86,12 +102,16 @@ public class OrderStatusTest {
 
 	@Test(dataProvider = "complementToResume", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* resume .*")
 	public void shouldNotResumeOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canResume()).isFalse();
+
 		// when
 		status.resume(order);
 	}
 
 	@Test(dataProvider = "toCancel")
 	public void shouldCancelOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canCancel()).isTrue();
+
 		// when
 		status.cancel(order, ANY_CANCEL_REASON);
 
@@ -101,6 +121,8 @@ public class OrderStatusTest {
 
 	@Test(dataProvider = "complementToCancel", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* cancel .*")
 	public void shouldNotCancelOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canCancel()).isFalse();
+
 		// when
 		status.cancel(order, ANY_CANCEL_REASON);
 	}
@@ -122,6 +144,44 @@ public class OrderStatusTest {
 
 		// when
 		status.update(order, ANY_ORDER_DETAILS);
+	}
+
+	@Test(dataProvider = "toRevert")
+	public void shouldRevertOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canRevert()).isTrue();
+
+		// when
+		status.revert(order);
+
+		// then
+		verify(order).doRevert();
+	}
+
+	@Test(dataProvider = "complementToRevert", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* revert .*")
+	public void shouldNotRevertOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canRevert()).isFalse();
+
+		// when
+		status.revert(order);
+	}
+
+	@Test(dataProvider = "toRequestForInformation")
+	public void shouldRequestForInformationOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canRequestForInformation()).isTrue();
+
+		// when
+		status.requestForInformation(order, ANY_REQUEST_FOR_INFORMATION);
+
+		// then
+		verify(order).doRequestForInformation(eq(ANY_REQUEST_FOR_INFORMATION));
+	}
+
+	@Test(dataProvider = "complementToRequestForInformation", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* request for information .*")
+	public void shouldNotRequestForInformationOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canRequestForInformation()).isFalse();
+
+		// when
+		status.requestForInformation(order, ANY_REQUEST_FOR_INFORMATION);
 	}
 
 	@Test(dataProvider = "toAmend")
@@ -201,6 +261,26 @@ public class OrderStatusTest {
 	@DataProvider
 	Object[][] complementToUpdate() {
 		return complement(toUpdate());
+	}
+
+	@DataProvider
+	Object[][] toRevert() {
+		return new Object[][] { { OrderStatus.OPENED } };
+	}
+
+	@DataProvider
+	Object[][] complementToRevert() {
+		return complement(toRevert());
+	}
+
+	@DataProvider
+	Object[][] toRequestForInformation() {
+		return new Object[][] { { OrderStatus.OPENED } };
+	}
+
+	@DataProvider
+	Object[][] complementToRequestForInformation() {
+		return complement(toRequestForInformation());
 	}
 
 	@DataProvider

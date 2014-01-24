@@ -49,6 +49,16 @@ public class OrderEventFactory {
 		return new OrderUpdatedEvent(currentDate(), currentUser(), identifier, status, oldDetails, newDetails);
 	}
 
+	public OrderRevertedEvent createRevertedEvent(OrderIdentifier identifier, OrderStatus oldStatus, OrderStatus status) {
+		return new OrderRevertedEvent(currentDate(), currentUser(), identifier, oldStatus, status);
+	}
+
+	public OrderRequestedForInformationEvent createRequestedForInformationEvent(OrderIdentifier identifier,
+			OrderStatus oldStatus, OrderStatus status, String request) {
+		return new OrderRequestedForInformationEvent(currentDate(), currentUser(), identifier, oldStatus, status,
+				request);
+	}
+
 	public OrderLineAmendedEvent createOrderLineAmendedEvent(OrderIdentifier identifier, OrderStatus status,
 			OrderLineIdentifier orderLineIdentifier, OrderLine orderLine) {
 		return new OrderLineAmendedEvent(currentDate(), currentUser(), identifier, status, orderLineIdentifier,
@@ -62,4 +72,5 @@ public class OrderEventFactory {
 	private User currentUser() {
 		return currentUserProvider.currentUser();
 	}
+
 }
