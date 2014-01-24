@@ -9,4 +9,4 @@ The primary goal of this project is to provide example implementation of this pa
 Example workflow:
 =================
 
-[state-diagram.png]
+![State Diagram](https://github.com/mkuthan/design-fsm/blob/master/state-diagram.png)
