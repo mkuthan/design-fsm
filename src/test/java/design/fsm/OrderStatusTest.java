@@ -1,5 +1,6 @@
 package design.fsm;
 
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -39,7 +40,7 @@ public class OrderStatusTest {
 	}
 
 	@Test(dataProvider = "complementToOpen", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* open .*")
-	public void couldNotOpenOrderWhenStatusIs(OrderStatus status) {
+	public void shouldNotOpenOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.open(order);
 	}
@@ -54,7 +55,7 @@ public class OrderStatusTest {
 	}
 
 	@Test(dataProvider = "complementToClose", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* close .*")
-	public void couldNotCloseOrderWhenStatusIs(OrderStatus status) {
+	public void shouldNotCloseOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.close(order);
 	}
@@ -69,7 +70,7 @@ public class OrderStatusTest {
 	}
 
 	@Test(dataProvider = "complementToSuspend", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* suspend .*")
-	public void couldNotSuspendOrderWhenStatusIs(OrderStatus status) {
+	public void shouldNotSuspendOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.suspend(order, ANY_SUSPEND_REASON);
 	}
@@ -84,7 +85,7 @@ public class OrderStatusTest {
 	}
 
 	@Test(dataProvider = "complementToResume", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* resume .*")
-	public void couldNotResumeOrderWhenStatusIs(OrderStatus status) {
+	public void shouldNotResumeOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.resume(order);
 	}
@@ -99,13 +100,15 @@ public class OrderStatusTest {
 	}
 
 	@Test(dataProvider = "complementToCancel", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* cancel .*")
-	public void couldNotCancelOrderWhenStatusIs(OrderStatus status) {
+	public void shouldNotCancelOrderWhenStatusIs(OrderStatus status) {
 		// when
 		status.cancel(order, ANY_CANCEL_REASON);
 	}
 
 	@Test(dataProvider = "toUpdate")
 	public void shouldUpdateOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canUpdate()).isTrue();
+
 		// when
 		status.update(order, ANY_ORDER_DETAILS);
 
@@ -114,13 +117,17 @@ public class OrderStatusTest {
 	}
 
 	@Test(dataProvider = "complementToUpdate", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* update .*")
-	public void couldNotUpdateOrderWhenStatusIs(OrderStatus status) {
+	public void shouldNotUpdateOrderWhenStatusIs(OrderStatus status) {
+		assertThat(status.canUpdate()).isFalse();
+
 		// when
 		status.update(order, ANY_ORDER_DETAILS);
 	}
 
 	@Test(dataProvider = "toAmend")
 	public void shouldAmendOrderLineWhenStatusIs(OrderStatus status) {
+		assertThat(status.canAmendOrderLine()).isTrue();
+
 		// when
 		status.amendOrderLine(order, ANY_AMEND_ORDER_LINE_COMMAND);
 
@@ -129,7 +136,9 @@ public class OrderStatusTest {
 	}
 
 	@Test(dataProvider = "complementToAmend", expectedExceptions = IllegalOrderStateException.class, expectedExceptionsMessageRegExp = ".* amend order line .*")
-	public void couldNotAmendOrderLineWhenStatusIs(OrderStatus status) {
+	public void shouldNotAmendOrderLineWhenStatusIs(OrderStatus status) {
+		assertThat(status.canAmendOrderLine()).isFalse();
+
 		// when
 		status.amendOrderLine(order, ANY_AMEND_ORDER_LINE_COMMAND);
 	}

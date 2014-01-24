@@ -8,6 +8,11 @@ public class NewOrderState extends OrderStateAdapter implements OrderState {
 	}
 
 	@Override
+	public boolean canUpdate() {
+		return true;
+	}
+
+	@Override
 	public void update(Order order, OrderDetails details) {
 		order.doUpdate(details);
 	}

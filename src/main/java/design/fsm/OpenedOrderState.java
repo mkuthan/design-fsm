@@ -20,6 +20,11 @@ public class OpenedOrderState extends OrderStateAdapter implements OrderState {
 	}
 
 	@Override
+	public boolean canAmendOrderLine() {
+		return true;
+	}
+
+	@Override
 	public void amendOrderLine(Order order, AmendOrderLineCommand command) {
 		order.doAmendOrderLine(command);
 	}

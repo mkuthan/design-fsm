@@ -93,7 +93,7 @@ public class Order {
 
 		eventPublisher.publish(orderEventFactory.createCancelledEvent(identifier, oldStatus, status, reason));
 	}
-
+	
 	public void update(OrderDetails details) {
 		status.update(this, details);
 	}

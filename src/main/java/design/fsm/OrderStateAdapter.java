@@ -30,8 +30,18 @@ public class OrderStateAdapter implements OrderState {
 	}
 
 	@Override
+	public boolean canUpdate() {
+		return false;
+	}
+
+	@Override
 	public void update(Order order, OrderDetails details) {
 		throw new IllegalOrderStateException(order, "update");
+	}
+
+	@Override
+	public boolean canAmendOrderLine() {
+		return false;
 	}
 
 	@Override

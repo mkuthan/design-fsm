@@ -42,8 +42,18 @@ public enum OrderStatus implements OrderState {
 	}
 
 	@Override
+	public boolean canUpdate() {
+		return state.canUpdate();
+	}
+
+	@Override
 	public void update(Order order, OrderDetails details) {
 		state.update(order, details);
+	}
+
+	@Override
+	public boolean canAmendOrderLine() {
+		return state.canAmendOrderLine();
 	}
 
 	@Override

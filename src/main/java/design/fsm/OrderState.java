@@ -14,7 +14,11 @@ public interface OrderState {
 
 	void cancel(Order order, String reason);
 
+	boolean canUpdate();
+	
 	void update(Order order, OrderDetails details);
+
+	boolean canAmendOrderLine();
 
 	void amendOrderLine(Order order, AmendOrderLineCommand command);
 
