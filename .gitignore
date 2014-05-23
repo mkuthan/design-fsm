@@ -1,8 +1,4 @@
 .gradle
-.settings
-/build
-/bin
-/target
-/test-output
-.classpath
-.project
+.idea
+*.iml
+

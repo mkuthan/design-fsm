@@ -1,9 +1,9 @@
 package design.fsm;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.fest.assertions.api.AbstractAssert;
-import org.fest.assertions.core.Condition;
+import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.Condition;
 
 public class OrderAssert extends AbstractAssert<OrderAssert, Order> {
 
