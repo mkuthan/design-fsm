@@ -3,41 +3,41 @@ package design.fsm;
 import design.fsm.commands.AmendOrderLineCommand;
 
 public interface OrderState {
-	
-	boolean canOpen();
-	
-	void open(Order order);
 
-	boolean canClose();
-	
-	void close(Order order);
-	
-	boolean canSuspend();
-	
-	void suspend(Order order, String reason);
-		
-	boolean canResume();
+    boolean canOpen();
 
-	void resume(Order order);
-	
-	boolean canCancel();
+    void open(Order order);
 
-	void cancel(Order order, String reason);
+    boolean canClose();
 
-	boolean canUpdate();
-	
-	void update(Order order, OrderDetails details);
+    void close(Order order);
 
-	boolean canRevert();
-	
-	void revert(Order order);
-	
-	boolean canRequestForInformation();
-	
-	void requestForInformation(Order order, String request);
-	
-	boolean canAmendOrderLine();
+    boolean canSuspend();
 
-	void amendOrderLine(Order order, AmendOrderLineCommand command);
+    void suspend(Order order, String reason);
+
+    boolean canResume();
+
+    void resume(Order order);
+
+    boolean canCancel();
+
+    void cancel(Order order, String reason);
+
+    boolean canUpdate();
+
+    void update(Order order, OrderDetails details);
+
+    boolean canRevert();
+
+    void revert(Order order);
+
+    boolean canRequestForInformation();
+
+    void requestForInformation(Order order, String request);
+
+    boolean canAmendOrderLine();
+
+    void amendOrderLine(Order order, AmendOrderLineCommand command);
 
 }

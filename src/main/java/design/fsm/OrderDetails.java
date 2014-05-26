@@ -1,66 +1,66 @@
 package design.fsm;
 
-import static java.util.Objects.requireNonNull;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 public class OrderDetails {
 
-	private List<OrderLine> orderLines;
+    private List<OrderLine> orderLines = new ArrayList<>();
 
-	public OrderDetails(List<OrderLine> orderLines) {
-		this.orderLines = requireNonNull(orderLines);
-	}
+    public OrderDetails(List<OrderLine> orderLines) {
+        this.orderLines.addAll(requireNonNull(orderLines));
+    }
 
-	public List<OrderLine> getOrderLines() {
-		return Collections.unmodifiableList(orderLines);
-	}
+    public List<OrderLine> getOrderLines() {
+        return Collections.unmodifiableList(orderLines);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(orderLines);
-	}
+    @Override
+    public boolean equals(Object that) {
+        return EqualsBuilder.reflectionEquals(this, that);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		OrderDetails that = (OrderDetails) obj;
-		return Objects.equals(this.orderLines, that.orderLines);
-	}
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
-	void changeOrderLine(OrderLineIdentifier identifier, OrderLine newOrderLine) {
-		int indexOfOrderLine = indexOf(identifier);
-		orderLines.set(indexOfOrderLine, newOrderLine);
-	}
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
 
-	void addOrderLine(OrderLine newOrderLine) {
-		orderLines.add(newOrderLine);
-	}
+    OrderLine changeOrderLine(OrderLineIdentifier identifier, OrderLine newOrderLine) {
+        int indexOfOrderLine = indexOf(identifier);
+        return orderLines.set(indexOfOrderLine, newOrderLine);
+    }
 
-	void removeOrderLine(OrderLineIdentifier identifier) {
-		int indexOfOrderLine = indexOf(identifier);
-		orderLines.remove(indexOfOrderLine);
-	}
+    boolean addOrderLine(OrderLine newOrderLine) {
+        return orderLines.add(newOrderLine);
+    }
 
-	private int indexOf(OrderLineIdentifier identifier) {
-		for (int i = 0; i < orderLines.size(); i++) {
-			OrderLine orderLine = orderLines.get(i);
-			if (orderLine.getIdentifier().equals(identifier)) {
-				return i;
-			}
-		}
+    OrderLine removeOrderLine(OrderLineIdentifier identifier) {
+        int indexOfOrderLine = indexOf(identifier);
+        return orderLines.remove(indexOfOrderLine);
+    }
 
-		throw new IllegalArgumentException("Order line with identifier '" + identifier + "' not found.");
-	}
+    private int indexOf(OrderLineIdentifier identifier) {
+        for (int i = 0; i < orderLines.size(); i++) {
+            OrderLine orderLine = orderLines.get(i);
+            if (orderLine.getIdentifier().equals(identifier)) {
+                return i;
+            }
+        }
+
+        throw new IllegalArgumentException("Order line with identifier '" + identifier + "' not found.");
+    }
 
 }

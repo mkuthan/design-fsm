@@ -1,27 +1,23 @@
 package design.fsm.events;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Date;
-
 import design.fsm.OrderIdentifier;
 import design.fsm.OrderStatus;
-import design.shared.User;
+
+import static java.util.Objects.requireNonNull;
 
 public class OrderCancelledEvent extends AbstractOrderEvent {
 
-	private static final long serialVersionUID = 1L;
-	
-	private String reason;
+    private static final long serialVersionUID = 1L;
 
-	public OrderCancelledEvent(Date createdAt, User createdBy, OrderIdentifier identifier, OrderStatus oldStatus,
-			OrderStatus newStatus, String reason) {
-		super(createdAt, createdBy, identifier, oldStatus, newStatus);
-		this.reason = requireNonNull(reason);
-	}
+    private String reason;
 
-	public String getReason() {
-		return reason;
-	}
+    public OrderCancelledEvent(OrderIdentifier identifier, OrderStatus oldStatus, OrderStatus newStatus, String reason) {
+        super(identifier, oldStatus, newStatus);
+        this.reason = requireNonNull(reason);
+    }
+
+    public String getReason() {
+        return reason;
+    }
 
 }

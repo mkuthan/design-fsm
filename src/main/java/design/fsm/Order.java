@@ -1,160 +1,174 @@
 package design.fsm;
 
-import static java.util.Objects.requireNonNull;
-import design.ddd.EventPublisher;
+import design.ddd.Event;
 import design.fsm.commands.AmendOrderLineCommand;
-import design.fsm.events.OrderEventFactory;
+import design.fsm.events.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 public class Order {
 
-	private EventPublisher eventPublisher;
+    private OrderStatus status;
 
-	private OrderEventFactory orderEventFactory;
+    private OrderIdentifier identifier;
 
-	private OrderStatus status;
+    private OrderDetails details;
 
-	private OrderIdentifier identifier;
+    private List<Event> pendingEvents = new ArrayList<>();
 
-	private OrderDetails details;
+    public Order(OrderStatus status, OrderIdentifier identifier, OrderDetails details) {
+        this.status = requireNonNull(status);
+        this.identifier = requireNonNull(identifier);
+        this.details = requireNonNull(details);
 
-	public Order(OrderStatus status, OrderIdentifier identifier, OrderDetails details) {
-		this.status = requireNonNull(status);
-		this.identifier = requireNonNull(identifier);
-		this.details = requireNonNull(details);
-	}
+        pendingEvents.add(new OrderPlacedEvent(identifier, status, details));
+    }
 
-	public OrderStatus getStatus() {
-		return status;
-	}
+    public Iterable<Event> getPendingEvents() {
+        return pendingEvents;
+    }
 
-	public OrderIdentifier getIdentifier() {
-		return identifier;
-	}
+    public OrderStatus getStatus() {
+        return status;
+    }
 
-	public OrderDetails getDetails() {
-		return details;
-	}
+    public OrderIdentifier getIdentifier() {
+        return identifier;
+    }
 
-	public void open() {
-		status.open(this);
-	}
+    public OrderDetails getDetails() {
+        return details;
+    }
 
-	void doOpen() {
-		OrderStatus oldStatus = status;
-		status = OrderStatus.OPENED;
+    public void open() {
+        status.open(this);
+    }
 
-		eventPublisher.publish(orderEventFactory.createOpenedEvent(identifier, oldStatus, status));
-	}
+    void doOpen() {
+        OrderStatus oldStatus = status;
+        status = OrderStatus.OPENED;
 
-	public void close() {
-		status.close(this);
-	}
+        pendingEvents.add(new OrderOpenedEvent(identifier, oldStatus, status));
+    }
 
-	void doClose() {
-		OrderStatus oldStatus = status;
-		status = OrderStatus.CLOSED;
+    public void close() {
+        status.close(this);
+    }
 
-		eventPublisher.publish(orderEventFactory.createClosedEvent(identifier, oldStatus, status));
-	}
+    void doClose() {
+        OrderStatus oldStatus = status;
+        status = OrderStatus.CLOSED;
 
-	public void suspend(String reason) {
-		status.suspend(this, reason);
-	}
+        pendingEvents.add(new OrderClosedEvent(identifier, oldStatus, status));
+    }
 
-	void doSuspend(String reason) {
-		requireNonNull(reason);
+    public void suspend(String reason) {
+        status.suspend(this, reason);
+    }
 
-		OrderStatus oldStatus = status;
-		status = OrderStatus.SUSPENDED;
+    void doSuspend(String reason) {
+        requireNonNull(reason);
 
-		eventPublisher.publish(orderEventFactory.createSuspendedEvent(identifier, oldStatus, status, reason));
-	}
+        OrderStatus oldStatus = status;
+        status = OrderStatus.SUSPENDED;
 
-	public void resume() {
-		status.resume(this);
-	}
+        pendingEvents.add(new OrderSuspendedEvent(identifier, oldStatus, status, reason));
+    }
 
-	void doResume() {
-		OrderStatus oldStatus = status;
-		status = OrderStatus.OPENED;
+    public void resume() {
+        status.resume(this);
+    }
 
-		eventPublisher.publish(orderEventFactory.createResumedEvent(identifier, oldStatus, status));
-	}
+    void doResume() {
+        OrderStatus oldStatus = status;
+        status = OrderStatus.OPENED;
 
-	public void cancel(String reason) {
-		status.cancel(this, reason);
-	}
+        pendingEvents.add(new OrderResumedEvent(identifier, oldStatus, status));
+    }
 
-	void doCancel(String reason) {
-		requireNonNull(reason);
+    public void cancel(String reason) {
+        status.cancel(this, reason);
+    }
 
-		OrderStatus oldStatus = status;
-		status = OrderStatus.CANCELLED;
+    void doCancel(String reason) {
+        requireNonNull(reason);
 
-		eventPublisher.publish(orderEventFactory.createCancelledEvent(identifier, oldStatus, status, reason));
-	}
+        OrderStatus oldStatus = status;
+        status = OrderStatus.CANCELLED;
 
-	public void update(OrderDetails details) {
-		status.update(this, details);
-	}
+        pendingEvents.add(new OrderCancelledEvent(identifier, oldStatus, status, reason));
+    }
 
-	void doUpdate(OrderDetails details) {
-		if (this.details.equals(details)) {
-			return;
-		}
+    public void update(OrderDetails details) {
+        status.update(this, details);
+    }
 
-		OrderDetails oldDetails = this.details;
-		this.details = requireNonNull(details);
+    void doUpdate(OrderDetails details) {
+        if (this.details.equals(details)) {
+            return;
+        }
 
-		eventPublisher.publish(orderEventFactory.createUpdateEven(identifier, status, oldDetails, details));
-	}
+        OrderDetails oldDetails = this.details;
+        this.details = requireNonNull(details);
 
-	public void revert() {
-		status.revert(this);
-	}
+        pendingEvents.add(new OrderUpdatedEvent(identifier, status, oldDetails, details));
+    }
 
-	void doRevert() {
-		OrderStatus oldStatus = status;
-		status = OrderStatus.NEW;
+    public void revert() {
+        status.revert(this);
+    }
 
-		eventPublisher.publish(orderEventFactory.createRevertedEvent(identifier, oldStatus, status));
-	}
+    void doRevert() {
+        OrderStatus oldStatus = status;
+        status = OrderStatus.NEW;
 
-	public void requestForInformation(String request) {
-		status.requestForInformation(this, request);
-	}
+        pendingEvents.add(new OrderRevertedEvent(identifier, oldStatus, status));
+    }
 
-	void doRequestForInformation(String request) {
-		requireNonNull(request);
+    public void requestForInformation(String request) {
+        status.requestForInformation(this, request);
+    }
 
-		OrderStatus oldStatus = status;
-		status = OrderStatus.NEW;
+    void doRequestForInformation(String request) {
+        requireNonNull(request);
 
-		eventPublisher.publish(orderEventFactory.createRequestedForInformationEvent(identifier, oldStatus, status,
-				request));
-	}
+        OrderStatus oldStatus = status;
+        status = OrderStatus.NEW;
 
-	public void amendOrderLine(AmendOrderLineCommand command) {
-		status.amendOrderLine(this, command);
-	}
+        pendingEvents.add(new OrderRequestedForInformationEvent(identifier, oldStatus, status, request));
+    }
 
-	void doAmendOrderLine(AmendOrderLineCommand command) {
-		requireNonNull(command);
+    public void amendOrderLine(AmendOrderLineCommand command) {
+        status.amendOrderLine(this, command);
+    }
 
-		if (command.isChanging()) {
-			details.changeOrderLine(command.getIdentifier(), command.getNewOrderLine());
-		}
+    void doAmendOrderLine(AmendOrderLineCommand command) {
+        requireNonNull(command);
 
-		if (command.isAdding()) {
-			details.addOrderLine(command.getNewOrderLine());
-		}
+        OrderLineIdentifier orderLineIdentifier = command.getIdentifier();
+        OrderLine newOrderLine = command.getNewOrderLine();
 
-		if (command.isRemoving()) {
-			details.removeOrderLine(command.getIdentifier());
-		}
+        if (command.isChanging()) {
+            OrderLine oldOrderLine = details.changeOrderLine(orderLineIdentifier, command.getNewOrderLine());
+            pendingEvents.add(new OrderLineChangedEvent(identifier, status, orderLineIdentifier, oldOrderLine, newOrderLine));
+        }
 
-		eventPublisher.publish(orderEventFactory.createOrderLineAmendedEvent(identifier, status,
-				command.getIdentifier(), command.getNewOrderLine()));
-	}
+        if (command.isAdding()) {
+            boolean added = details.addOrderLine(newOrderLine);
+
+            if (added) {
+                pendingEvents.add(new OrderLineAddedEvent(identifier, status, newOrderLine.getIdentifier(), newOrderLine));
+            }
+        }
+
+        if (command.isRemoving()) {
+            OrderLine oldOrderLine = details.removeOrderLine(orderLineIdentifier);
+            pendingEvents.add(new OrderLineRemovedEvent(identifier, status, orderLineIdentifier, oldOrderLine));
+        }
+
+    }
 
 }

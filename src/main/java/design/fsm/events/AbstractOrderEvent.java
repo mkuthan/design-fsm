@@ -1,59 +1,59 @@
 package design.fsm.events;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Date;
-
 import design.ddd.Event;
 import design.fsm.OrderIdentifier;
 import design.fsm.OrderStatus;
-import design.shared.User;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import static java.util.Objects.requireNonNull;
 
 public abstract class AbstractOrderEvent implements Event {
 
-	private static final long serialVersionUID = 1L;
+    private OrderIdentifier identifier;
 
-	private Date createdAt;
+    private OrderStatus oldStatus;
 
-	private User createdBy;
+    private OrderStatus newStatus;
 
-	private OrderIdentifier identifier;
+    protected AbstractOrderEvent(OrderIdentifier identifier, OrderStatus status) {
+        this(identifier, status, status);
+    }
 
-	private OrderStatus oldStatus;
+    protected AbstractOrderEvent(OrderIdentifier identifier, OrderStatus oldStatus,
+                                 OrderStatus newStatus) {
+        this.identifier = requireNonNull(identifier);
+        this.oldStatus = requireNonNull(oldStatus);
+        this.newStatus = requireNonNull(newStatus);
+    }
 
-	private OrderStatus newStatus;
+    public OrderIdentifier getIdentifier() {
+        return identifier;
+    }
 
-	protected AbstractOrderEvent(Date createdAt, User createdBy, OrderIdentifier identifier, OrderStatus status) {
-		this(createdAt, createdBy, identifier, status, status);
-	}
+    public OrderStatus getOldStatus() {
+        return oldStatus;
+    }
 
-	protected AbstractOrderEvent(Date createdAt, User createdBy, OrderIdentifier identifier, OrderStatus oldStatus,
-			OrderStatus newStatus) {
-		this.createdAt = requireNonNull(createdAt);
-		this.createdBy = requireNonNull(createdBy);
-		this.identifier = requireNonNull(identifier);
-		this.oldStatus = requireNonNull(oldStatus);
-		this.newStatus = requireNonNull(newStatus);
-	}
+    public OrderStatus getNewStatus() {
+        return newStatus;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    @Override
+    public boolean equals(Object that) {
+        return EqualsBuilder.reflectionEquals(this, that);
+    }
 
-	public User getCreatedBy() {
-		return createdBy;
-	}
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
-	public OrderIdentifier getIdentifier() {
-		return identifier;
-	}
-
-	public OrderStatus getOldStatus() {
-		return oldStatus;
-	}
-
-	public OrderStatus getNewStatus() {
-		return newStatus;
-	}
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
 
 }

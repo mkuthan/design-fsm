@@ -1,221 +1,224 @@
 package design.fsm;
 
-import org.mockito.Answers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.testng.annotations.Test;
-
-import design.ddd.EventPublisher;
-import design.ddd.EventPublisherAssert;
 import design.fsm.commands.AmendOrderLineCommand;
-import design.fsm.events.OrderCancelledEvent;
-import design.fsm.events.OrderClosedEvent;
-import design.fsm.events.OrderEventFactory;
-import design.fsm.events.OrderLineAmendedEvent;
-import design.fsm.events.OrderOpenedEvent;
-import design.fsm.events.OrderRequestedForInformationEvent;
-import design.fsm.events.OrderResumedEvent;
-import design.fsm.events.OrderRevertedEvent;
-import design.fsm.events.OrderSuspendedEvent;
-import design.fsm.events.OrderUpdatedEvent;
+import design.fsm.events.*;
+import org.testng.annotations.Test;
 
 @Test
 public class OrderTest {
 
-	@Mock
-	private EventPublisher eventPublisher;
+    private Order order;
 
-	@Mock(answer = Answers.RETURNS_SMART_NULLS)
-	private OrderEventFactory orderEventFactory;
+    private OrderBuilder orderBuilder;
 
-	@InjectMocks
-	private Order order;
+    public void shouldBeNew() {
+        OrderDetails details = givenOrderDetails().build();
+        givenOrder().newOrder().withDetails(details);
 
-	private OrderBuilder orderBuilder;
+        whenOrder();
 
-	public void shouldBeNew() {
-		givenOrder().newOrder();
+        thenOrder()
+                .isNew()
+                .published(new OrderPlacedEvent(order.getIdentifier(), OrderStatus.NEW, details));
+    }
 
-		whenOrder();
+    public void shouldBeOpened() {
+        givenOrder().newOrder();
 
-		thenOrder().isNew();
-	}
+        whenOrder().open();
 
-	public void shouldBeOpened() {
-		givenOrder().newOrder();
+        thenOrder()
+                .isOpened()
+                .published(new OrderOpenedEvent(order.getIdentifier(), OrderStatus.NEW, OrderStatus.OPENED));
+    }
 
-		whenOrder().open();
+    public void shouldBeClosed() {
+        givenOrder().openedOrder();
 
-		thenOrder().isOpened();
-		thenDomainEventPublisher().published(OrderOpenedEvent.class);
-	}
+        whenOrder().close();
 
-	public void shouldBeClosed() {
-		givenOrder().openedOrder();
+        thenOrder()
+                .isClosed()
+                .published(new OrderClosedEvent(order.getIdentifier(), OrderStatus.OPENED, OrderStatus.CLOSED));
+    }
 
-		whenOrder().close();
+    public void shouldBeSuspended() {
+        givenOrder().openedOrder();
 
-		thenOrder().isClosed();
-		thenDomainEventPublisher().published(OrderClosedEvent.class);
-	}
+        String message = "any message";
+        whenOrder().suspend(message);
 
-	public void shouldBeSuspended() {
-		givenOrder().openedOrder();
+        thenOrder()
+                .isSuspended()
+                .published(new OrderSuspendedEvent(order.getIdentifier(), OrderStatus.OPENED, OrderStatus.SUSPENDED, message));
+    }
 
-		String message = "any message";
-		whenOrder().suspend(message);
+    public void shouldBeResumed() {
+        givenOrder().suspendedOrder();
 
-		thenOrder().isSuspended();
-		thenDomainEventPublisher().published(OrderSuspendedEvent.class);
-	}
+        whenOrder().resume();
 
-	public void shouldBeResumed() {
-		givenOrder().suspendedOrder();
+        thenOrder()
+                .isOpened()
+                .published(new OrderResumedEvent(order.getIdentifier(), OrderStatus.SUSPENDED, OrderStatus.OPENED));
+    }
 
-		whenOrder().resume();
+    public void shouldBeCancelled() {
+        givenOrder().openedOrder();
 
-		thenOrder().isOpened();
-		thenDomainEventPublisher().published(OrderResumedEvent.class);
-	}
+        String message = "any message";
+        whenOrder().cancel(message);
 
-	public void shouldBeCancelled() {
-		givenOrder().openedOrder();
+        thenOrder()
+                .isCancelled()
+                .published(new OrderCancelledEvent(order.getIdentifier(), OrderStatus.OPENED, OrderStatus.CANCELLED, message));
+    }
 
-		String message = "any message";
-		whenOrder().cancel(message);
+    public void shouldUpdate() {
+        OrderDetails oldDetails = givenOrderDetails()
+                .addOrderLine(givenOrderLine()
+                        .withIdentifier(new OrderLineIdentifier("old line"))
+                        .build())
+                .build();
 
-		thenOrder().isCancelled();
-		thenDomainEventPublisher().published(OrderCancelledEvent.class);
-	}
+        givenOrder().newOrder().withDetails(oldDetails);
 
-	public void shouldUpdatee() {
-		givenOrder().newOrder();
+        OrderDetails newDetails = givenOrderDetails()
+                .addOrderLine(givenOrderLine()
+                        .withIdentifier(new OrderLineIdentifier("new line"))
+                        .build())
+                .build();
 
-		// @formatter:off
-		OrderDetails newDetails = givenOrderDetails()
-				.addOrderLine(givenOrderLine().build())
-				.build();
-		// @formatter:on
-		whenOrder().update(newDetails);
+        whenOrder().update(newDetails);
 
-		thenOrder().hasDetails(newDetails);
-		thenDomainEventPublisher().published(OrderUpdatedEvent.class);
-	}
+        thenOrder()
+                .hasDetails(newDetails)
+                .published(new OrderUpdatedEvent(order.getIdentifier(), OrderStatus.NEW, oldDetails, newDetails));
+    }
 
-	public void shouldNotUpdateWhenNoChanges() {
-		givenOrder().newOrder();
+    public void shouldNotUpdateWhenNoChanges() {
+        OrderDetails details = givenOrderDetails().build();
+        givenOrder().newOrder().withDetails(details);
 
-		OrderDetails newDetails = givenOrderDetails().build();
-		whenOrder().update(newDetails);
+        whenOrder().update(details);
 
-		thenOrder().hasDetails(newDetails);
-		thenDomainEventPublisher().notPublished(OrderUpdatedEvent.class);
-	}
+        thenOrder()
+                .hasDetails(details)
+                .notPublished(OrderUpdatedEvent.class);
+    }
 
-	public void shouldRevert() {
-		givenOrder().openedOrder();
+    public void shouldRevert() {
+        givenOrder().openedOrder();
 
-		whenOrder().revert();
+        whenOrder().revert();
 
-		thenOrder().isNew();
-		thenDomainEventPublisher().published(OrderRevertedEvent.class);
-	}
+        thenOrder()
+                .isNew()
+                .published(new OrderRevertedEvent(order.getIdentifier(), OrderStatus.OPENED, OrderStatus.NEW));
+    }
 
-	public void shouldRequestForInformation() {
-		givenOrder().openedOrder();
+    public void shouldRequestForInformation() {
+        givenOrder().openedOrder();
 
-		whenOrder().requestForInformation("any request");
+        String request = "any request";
+        whenOrder().requestForInformation(request);
 
-		thenOrder().isNew();
-		thenDomainEventPublisher().published(OrderRequestedForInformationEvent.class);
-	}
+        thenOrder()
+                .isNew()
+                .published(new OrderRequestedForInformationEvent(order.getIdentifier(), OrderStatus.OPENED, OrderStatus.NEW, request));
+    }
 
-	public void shouldChangeOrderLine() {
-		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("changed line");
-		// @formatter:off
-		givenOrder().openedOrder()
-			.withDetails(givenOrderDetails()
-				.addOrderLine(givenOrderLine().withIdentifier(orderLineIdentifier).build())
-			.build());
-		// @formatter:on
+    public void shouldChangeOrderLine() {
+        OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("changed line");
+        OrderLine orderLine = givenOrderLine().withIdentifier(orderLineIdentifier).build();
 
-		OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
-		whenOrder().amendOrderLine(
-				AmendOrderLineCommand.changeOrderLineCommand(orderLineIdentifier,
-						givenOrderLine().withIdentifier(newOrderLineIdentifier).build()));
+        givenOrder().openedOrder()
+                .withDetails(
+                        givenOrderDetails().addOrderLine(orderLine).build()
+                );
 
-		thenOrder().doesNotContainOrderLine(orderLineIdentifier).containsOrderLine(newOrderLineIdentifier);
-		thenDomainEventPublisher().published(OrderLineAmendedEvent.class);
-	}
+        OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
+        OrderLine newOrderLine = givenOrderLine().withIdentifier(newOrderLineIdentifier).build();
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void shouldChangeFailForNotExistingOrderLine() {
-		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("changed line");
-		givenOrder().openedOrder();
+        whenOrder().amendOrderLine(AmendOrderLineCommand.changeOrderLineCommand(orderLineIdentifier, newOrderLine));
 
-		OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
-		whenOrder().amendOrderLine(
-				AmendOrderLineCommand.changeOrderLineCommand(orderLineIdentifier,
-						givenOrderLine().withIdentifier(newOrderLineIdentifier).build()));
-	}
+        thenOrder()
+                .doesNotContainOrderLine(orderLineIdentifier)
+                .containsOrderLine(newOrderLineIdentifier)
+                .published(new OrderLineChangedEvent(order.getIdentifier(), OrderStatus.OPENED, orderLineIdentifier, orderLine, newOrderLine));
+    }
 
-	public void shouldAddOrderLine() {
-		givenOrder().openedOrder();
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldChangeFailForNotExistingOrderLine() {
+        OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("changed line");
+        givenOrder().openedOrder();
 
-		OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
-		whenOrder().amendOrderLine(
-				AmendOrderLineCommand.addOrderLineCommand(givenOrderLine().withIdentifier(newOrderLineIdentifier)
-						.build()));
+        OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
+        whenOrder().amendOrderLine(
+                AmendOrderLineCommand.changeOrderLineCommand(orderLineIdentifier,
+                        givenOrderLine().withIdentifier(newOrderLineIdentifier).build())
+        );
+    }
 
-		thenOrder().containsOrderLine(newOrderLineIdentifier);
-		thenDomainEventPublisher().published(OrderLineAmendedEvent.class);
-	}
+    public void shouldAddOrderLine() {
+        givenOrder().openedOrder();
 
-	public void shouldRemoveOrderLine() {
-		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("removed line");
-		givenOrder().openedOrder().withDetails(
-				givenOrderDetails().addOrderLine(givenOrderLine().withIdentifier(orderLineIdentifier).build()).build());
+        OrderLineIdentifier newOrderLineIdentifier = new OrderLineIdentifier("new line");
+        OrderLine newOrderLine = givenOrderLine().withIdentifier(newOrderLineIdentifier).build();
 
-		whenOrder().amendOrderLine(AmendOrderLineCommand.removeOrderLineCommand(orderLineIdentifier));
+        whenOrder().amendOrderLine(AmendOrderLineCommand.addOrderLineCommand(newOrderLine));
 
-		thenOrder().doesNotContainOrderLine(orderLineIdentifier);
-		thenDomainEventPublisher().published(OrderLineAmendedEvent.class);
-	}
+        thenOrder()
+                .containsOrderLine(newOrderLineIdentifier)
+                .published(new OrderLineAddedEvent(order.getIdentifier(), OrderStatus.OPENED, newOrderLineIdentifier, newOrderLine));
+    }
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void shouldRemoveFailForNotExistingOrderLine() {
-		OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("removed line");
-		givenOrder().openedOrder();
+    public void shouldRemoveOrderLine() {
+        OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("removed line");
+        OrderLine orderLine = givenOrderLine().withIdentifier(orderLineIdentifier).build();
 
-		whenOrder().amendOrderLine(AmendOrderLineCommand.removeOrderLineCommand(orderLineIdentifier));
-	}
+        givenOrder().openedOrder()
+                .withDetails(
+                        givenOrderDetails()
+                                .addOrderLine(orderLine)
+                                .build()
+                );
 
-	private OrderBuilder givenOrder() {
-		orderBuilder = new OrderBuilder();
-		return orderBuilder;
-	}
+        whenOrder().amendOrderLine(AmendOrderLineCommand.removeOrderLineCommand(orderLineIdentifier));
 
-	private OrderDetailsBuilder givenOrderDetails() {
-		return new OrderDetailsBuilder();
-	}
+        thenOrder()
+                .doesNotContainOrderLine(orderLineIdentifier)
+                .published(new OrderLineRemovedEvent(order.getIdentifier(), OrderStatus.OPENED, orderLineIdentifier, orderLine));
+    }
 
-	private OrderLineBuilder givenOrderLine() {
-		return new OrderLineBuilder();
-	}
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldRemoveFailForNotExistingOrderLine() {
+        OrderLineIdentifier orderLineIdentifier = new OrderLineIdentifier("removed line");
+        givenOrder().openedOrder();
 
-	private Order whenOrder() {
-		order = orderBuilder.build();
-		MockitoAnnotations.initMocks(this);
-		return order;
-	}
+        whenOrder().amendOrderLine(AmendOrderLineCommand.removeOrderLineCommand(orderLineIdentifier));
+    }
 
-	private OrderAssert thenOrder() {
-		return new OrderAssert(order);
-	}
+    private OrderBuilder givenOrder() {
+        orderBuilder = new OrderBuilder();
+        return orderBuilder;
+    }
 
-	private EventPublisherAssert thenDomainEventPublisher() {
-		return new EventPublisherAssert(eventPublisher);
-	}
+    private OrderDetailsBuilder givenOrderDetails() {
+        return new OrderDetailsBuilder();
+    }
+
+    private OrderLineBuilder givenOrderLine() {
+        return new OrderLineBuilder();
+    }
+
+    private Order whenOrder() {
+        order = orderBuilder.build();
+        return order;
+    }
+
+    private OrderAssert thenOrder() {
+        return new OrderAssert(order);
+    }
 
 }

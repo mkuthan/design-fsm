@@ -1,27 +1,23 @@
 package design.fsm.events;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Date;
-
 import design.fsm.OrderIdentifier;
 import design.fsm.OrderStatus;
-import design.shared.User;
+
+import static java.util.Objects.requireNonNull;
 
 public class OrderRequestedForInformationEvent extends AbstractOrderEvent {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private String request;
+    private String request;
 
-	public OrderRequestedForInformationEvent(Date createdAt, User createdBy, OrderIdentifier identifier,
-			OrderStatus oldStatus, OrderStatus newStatus, String request) {
-		super(createdAt, createdBy, identifier, oldStatus, newStatus);
-		this.request = requireNonNull(request);
-	}
+    public OrderRequestedForInformationEvent(OrderIdentifier identifier, OrderStatus oldStatus, OrderStatus newStatus, String request) {
+        super(identifier, oldStatus, newStatus);
+        this.request = requireNonNull(request);
+    }
 
-	public String getRequest() {
-		return request;
-	}
+    public String getRequest() {
+        return request;
+    }
 
 }

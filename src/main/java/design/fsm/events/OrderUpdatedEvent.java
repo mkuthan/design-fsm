@@ -1,35 +1,31 @@
 package design.fsm.events;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Date;
-
 import design.fsm.OrderDetails;
 import design.fsm.OrderIdentifier;
 import design.fsm.OrderStatus;
-import design.shared.User;
+
+import static java.util.Objects.requireNonNull;
 
 public class OrderUpdatedEvent extends AbstractOrderEvent {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private OrderDetails oldDetails;
+    private OrderDetails oldDetails;
 
-	private OrderDetails newDetails;
+    private OrderDetails newDetails;
 
-	public OrderUpdatedEvent(Date createdAt, User createdBy, OrderIdentifier identifier, OrderStatus status,
-			OrderDetails oldDetails, OrderDetails newDetails) {
-		super(createdAt, createdBy, identifier, status);
-		this.oldDetails = requireNonNull(newDetails);
-		this.newDetails = requireNonNull(newDetails);
-	}
+    public OrderUpdatedEvent(OrderIdentifier identifier, OrderStatus status, OrderDetails oldDetails, OrderDetails newDetails) {
+        super(identifier, status);
+        this.oldDetails = requireNonNull(newDetails);
+        this.newDetails = requireNonNull(newDetails);
+    }
 
-	public OrderDetails getOldDetails() {
-		return oldDetails;
-	}
+    public OrderDetails getOldDetails() {
+        return oldDetails;
+    }
 
-	public OrderDetails getNewDetails() {
-		return newDetails;
-	}
+    public OrderDetails getNewDetails() {
+        return newDetails;
+    }
 
 }

@@ -5,14 +5,14 @@ import java.util.List;
 
 public class OrderDetailsBuilder {
 
-	private List<OrderLine> orderLines = new ArrayList<>();
+    private List<OrderLine> orderLines = new ArrayList<>();
 
-	public OrderDetailsBuilder addOrderLine(OrderLine orderLine) {
-		orderLines.add(orderLine);
-		return this;
-	}
+    public OrderDetailsBuilder addOrderLine(OrderLine orderLine) {
+        orderLines.add(orderLine);
+        return this;
+    }
 
-	public OrderDetails build() {
-		return new OrderDetails(orderLines);
-	}
+    public OrderDetails build() {
+        return new OrderDetails(orderLines);
+    }
 }
